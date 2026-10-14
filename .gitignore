@@ -1,0 +1,12 @@
+# Dependencias (se reinstalan con npm install)
+node_modules/
+
+# Carpetas internas de Claude Code
+.trash/
+synced/
+
+# Temporales
+*.log
+~$*
+.DS_Store
+Thumbs.db
