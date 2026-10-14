@@ -16,10 +16,15 @@
 [CmdletBinding()]
 param(
   [Parameter(Mandatory)][string]$Datos,
-  [string]$Plantillas = (Join-Path (Split-Path $PSScriptRoot -Parent) 'plantillas'),
+  [string]$Plantillas,
   [switch]$Visible
 )
 $ErrorActionPreference = 'Stop'
+if (-not $Plantillas) {
+  # $PSScriptRoot puede llegar vacío según cómo se invoque (p. ej. powershell.exe -File desde Bash).
+  $dirScript = if ($PSScriptRoot) { $PSScriptRoot } else { Split-Path -Parent $MyInvocation.MyCommand.Path }
+  $Plantillas = Join-Path (Split-Path $dirScript -Parent) 'plantillas'
+}
 
 function Normalize([string]$s) {
   if ($null -eq $s) { return '' }

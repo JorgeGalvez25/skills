@@ -10,17 +10,23 @@
   - Mapea cada unidad Delphi modificada a los proyectos (.dpr) que la compilan.
   - Detecta indicios de cambios en base de datos (campos persistentes nuevos en .dfm,
     DDL/DML en código, scripts .sql, constantes de versión de BD).
+  - Detecta código pendiente de versionar (cambios sin commit, archivos sin rastrear,
+    commits sin push o rama sin publicar) en los repos del ticket.
+  - Lista otros TT mencionados en los commits (posible ticket origen de soporte).
   - No modifica nada en los repositorios (solo lectura; opcionalmente hace git fetch).
 
 .EXAMPLE
   .\Get-CambiosTT.ps1 -Rutas "C:\Rama Azure" -Ticket TT100075
 .EXAMPLE
   .\Get-CambiosTT.ps1 -Rutas "C:\Rama Azure\Imagen Ib Gas"      # toma el TT de la rama actual
+.EXAMPLE
+  .\Get-CambiosTT.ps1 -Rutas "C:\Rama Azure\Imagen Ib Gas" -Rama "feature/TT96079"
 #>
 [CmdletBinding()]
 param(
   [string[]]$Rutas = @('C:\Rama Azure'),
   [string]$Ticket,
+  [string]$Rama,       # nombre exacto de la rama (local o remota); si se omite, se busca por el patrón TT#####
   [string]$RamaBase = 'origin/main',
   [string]$Salida,
   [switch]$SinFetch,
@@ -73,11 +79,12 @@ function Test-GitRepo { param([string]$Dir) return (Test-Path (Join-Path $Dir '.
 # ---------------------------------------------------------------- 1. Repositorios
 $repos = New-Object System.Collections.Generic.List[string]
 $raices = New-Object System.Collections.Generic.List[string]
+$explicitos = New-Object System.Collections.Generic.List[string]   # repos indicados directamente en -Rutas
 foreach ($r in $Rutas) {
   if (-not (Test-Path $r)) { Write-Warning "La ruta no existe: $r"; continue }
   $full = (Resolve-Path $r).Path.TrimEnd('\')
   if (Test-GitRepo $full) {
-    $repos.Add($full)
+    $repos.Add($full); $explicitos.Add($full)
     $parent = Split-Path $full -Parent
     if (-not $SoloRutas -and $parent) { $raices.Add($parent) }
   } else {
@@ -92,6 +99,7 @@ $repos = @($repos | Select-Object -Unique)
 if ($repos.Count -eq 0) { throw "No se encontraron repositorios Git en: $($Rutas -join ', ')" }
 
 # ---------------------------------------------------------------- 2. Ticket
+if (-not $Ticket -and $Rama -match '(TT\d+)') { $Ticket = $Matches[1] }
 if (-not $Ticket) {
   foreach ($r in $repos) {
     $b = (Invoke-Git $r @('branch', '--show-current')) | Select-Object -First 1
@@ -178,15 +186,31 @@ $resultado = [ordered]@{
   modulos      = @()
   bd           = [ordered]@{ camposPersistentesNuevos = @(); sentenciasSQL = @(); tablasReferenciadas = @(); scriptsSQL = @(); constantesVersion = @() }
   configuracion= @()
+  pendientes   = @()   # código pendiente de versionar, por repo
+  ticketsRelacionados = @()   # otros TT mencionados en los commits
   advertencias = @()
 }
+$sinPush = @{}   # repo -> @{ rama; remota; commits; publicada }
 
 foreach ($r in $repos) {
   $repoName = Split-Path $r -Leaf
-  $refs = Invoke-Git $r @('for-each-ref', '--format=%(refname:short)', 'refs/heads', 'refs/remotes')
-  $pat = "(^|/)$Ticket([_\-\.][^/]*)?$"
-  $locales  = @($refs | Where-Object { $_ -match $pat -and $_ -notmatch '/' })
-  $remotas  = @($refs | Where-Object { $_ -match $pat -and $_ -match '/' })
+  # Se clasifica por espacio de nombres (refs/heads vs refs/remotes), no por si el nombre trae '/':
+  # una rama local "feature/TT96079" también tiene '/'.
+  $refs = Invoke-Git $r @('for-each-ref', '--format=%(refname)', 'refs/heads', 'refs/remotes')
+  $locTodas = @($refs | Where-Object { $_ -like 'refs/heads/*' } | ForEach-Object { $_.Substring(11) })
+  $remTodas = @($refs | Where-Object { $_ -like 'refs/remotes/*' -and $_ -notmatch '/HEAD$' } | ForEach-Object { $_.Substring(13) })
+  if ($Rama) {
+    $locales = @($locTodas | Where-Object { $_ -eq $Rama })
+    $remotas = @($remTodas | Where-Object { $_ -eq $Rama -or $_ -match ('^[^/]+/' + [regex]::Escape($Rama) + '$') })
+  } else {
+    $pat = "(^|/)$Ticket([_\-\.][^/]*)?$"
+    $locales = @($locTodas | Where-Object { $_ -match $pat })
+    $remotas = @($remTodas | Where-Object { $_ -match $pat })
+  }
+  if ($locales.Count -gt 0) {
+    # Primero la remota que corresponde a la local elegida.
+    $remotas = @($remotas | Sort-Object { if ($_ -match ('^[^/]+/' + [regex]::Escape($locales[0]) + '$')) { 0 } else { 1 } })
+  }
 
   $base = $RamaBase
   Invoke-Git $r @('rev-parse', '--verify', '--quiet', $base) | Out-Null
@@ -202,8 +226,13 @@ foreach ($r in $repos) {
   $rama = $null
   if ($locales.Count -gt 0) { $rama = $locales[0] } elseif ($remotas.Count -gt 0) { $rama = $remotas[0] }
   if ($locales.Count -gt 0 -and $remotas.Count -gt 0) {
-    $l = (Invoke-Git $r @('rev-parse', $locales[0]))[0]; $o = (Invoke-Git $r @('rev-parse', $remotas[0]))[0]
-    if ($l -ne $o) { $resultado.advertencias += "[$repoName] La rama local $($locales[0]) y la remota $($remotas[0]) difieren (¿commits sin push o sin pull?). Se usó la local." }
+    $adelante = [int]((Invoke-Git $r @('rev-list', '--count', "$($remotas[0])..$($locales[0])")) | Select-Object -First 1)
+    $atras    = [int]((Invoke-Git $r @('rev-list', '--count', "$($locales[0])..$($remotas[0])")) | Select-Object -First 1)
+    if ($adelante -gt 0) { $sinPush[$r] = @{ rama = $locales[0]; remota = $remotas[0]; commits = $adelante; publicada = $true } }
+    if ($atras -gt 0) { $resultado.advertencias += "[$repoName] La remota $($remotas[0]) tiene $atras commit(s) que la local $($locales[0]) no tiene (¿falta pull?). Se usó la local." }
+  } elseif ($locales.Count -gt 0) {
+    $n = [int]((Invoke-Git $r @('rev-list', '--count', "$base..$($locales[0])")) | Select-Object -First 1)
+    if ($n -gt 0) { $sinPush[$r] = @{ rama = $locales[0]; remota = $null; commits = $n; publicada = $false } }
   }
 
   $modo = $null; $hashes = @(); $tip = $null; $mb = $null
@@ -350,7 +379,46 @@ foreach ($r in $repos) {
   }
 }
 
-if ($resultado.repos.Count -eq 0) { throw "No se encontraron cambios para $Ticket en ninguno de los repos revisados." }
+# ---------------------------------------------------------------- 4b. Código pendiente de versionar
+# Se revisan los repos con cambios del TT, los indicados en -Rutas y los que tienen la rama del TT activa.
+# Los artefactos de compilación y del IDE no cuentan (no se versionan).
+$reRuido = '(?i)(\.(dcu|exe|dll|bpl|dcp|map|drc|rsm|ddp|dsk|identcache|local|bak|tmp|log|obj|pdb|cache)$|\.~[^/]*$|(^|/)(__history|__recovery|bin|obj|Debug|Release)/)'
+foreach ($r in $repos) {
+  $repoName = Split-Path $r -Leaf
+  $actual = (Invoke-Git $r @('branch', '--show-current')) | Select-Object -First 1
+  $esDelTT = ($resultado.repos | Where-Object { $_.ruta -eq $r }) -or ($explicitos -contains $r) -or
+             ($actual -match "(^|/)$Ticket([_\-\.]|$)") -or ($Rama -and $actual -eq $Rama)
+  if (-not $esDelTT) { continue }
+  $sinCommit = @(); $sinRastrear = @(); $ruido = 0
+  foreach ($s in (Invoke-Git $r @('status', '--porcelain=v1'))) {
+    if ($s.Length -lt 4) { continue }
+    $xy = $s.Substring(0, 2); $ruta = $s.Substring(3).Trim('"')
+    if ($ruta -match $reRuido) { $ruido++; continue }
+    if ($xy -eq '??') { $sinRastrear += $ruta } else { $sinCommit += "$($xy.Trim()) $ruta" }
+  }
+  $sp = $sinPush[$r]
+  if ($sinCommit.Count -or $sinRastrear.Count -or $sp) {
+    $resultado.pendientes += [pscustomobject]@{
+      repo = $repoName; ruta = $r; ramaActual = $(if ($actual) { $actual } else { '(HEAD separado)' })
+      sinCommit = $sinCommit; sinRastrear = $sinRastrear
+      sinPush = $(if ($sp) { [pscustomobject]$sp } else { $null }); artefactosIgnorados = $ruido
+    }
+  }
+}
+if ($resultado.pendientes.Count) {
+  $resultado.advertencias += "Hay código pendiente de versionar en: $(@($resultado.pendientes | ForEach-Object { $_.repo }) -join ', '). Ver la sección 'Código pendiente de versionar'."
+}
+
+# Otros TT mencionados en los commits: candidatos a ticket origen de soporte.
+$resultado.ticketsRelacionados = @($resultado.commits | ForEach-Object { [regex]::Matches($_.mensaje, '(?i)TT\s?\d{4,}') | ForEach-Object { ($_.Value -replace '\s', '').ToUpper() } } |
+  Where-Object { $_ -ne $Ticket } | Sort-Object -Unique)
+
+if ($resultado.repos.Count -eq 0) {
+  $msg = "No se encontraron commits para $Ticket en ninguno de los repos revisados."
+  foreach ($p in $resultado.pendientes) { $msg += "`n  [$($p.repo)] rama $($p.ramaActual): $($p.sinCommit.Count) archivo(s) sin commit, $($p.sinRastrear.Count) sin rastrear." }
+  if ($resultado.pendientes.Count) { $msg += "`nEl código del ticket no está versionado: debe hacerse commit (y push) antes de documentar." }
+  throw $msg
+}
 
 $resultado.autores = @($resultado.commits | Group-Object autor | Sort-Object Count -Descending | ForEach-Object { [pscustomobject]@{ autor = $_.Name; commits = $_.Count } })
 $resultado.bd.tablasReferenciadas = @($resultado.bd.tablasReferenciadas | Where-Object { $_ -notmatch '^(SELECT|WHERE|VALUES|SET|NULL)$' } | Sort-Object -Unique)
@@ -388,6 +456,20 @@ if ($resultado.bd.scriptsSQL.Count) { [void]$md.AppendLine("- Scripts .sql: $($r
 if ($resultado.bd.tablasReferenciadas.Count) { [void]$md.AppendLine("- Tablas referenciadas en líneas nuevas: $($resultado.bd.tablasReferenciadas -join ', ')") }
 foreach ($v in $resultado.bd.constantesVersion) { [void]$md.AppendLine("- Constante de versión: $v") }
 if ($resultado.configuracion.Count) { [void]$md.AppendLine("`n## Archivos de configuración`n- $($resultado.configuracion -join "`n- ")") }
+[void]$md.AppendLine("`n## Código pendiente de versionar")
+if (-not $resultado.pendientes.Count) { [void]$md.AppendLine('Ninguno.') }
+foreach ($p in $resultado.pendientes) {
+  [void]$md.AppendLine("- **$($p.repo)** (rama actual: $($p.ramaActual))")
+  foreach ($f in $p.sinCommit) { [void]$md.AppendLine("  - Sin commit: ``$f``") }
+  foreach ($f in $p.sinRastrear) { [void]$md.AppendLine("  - Sin rastrear: ``$f``") }
+  if ($p.sinPush) {
+    if ($p.sinPush.publicada) { [void]$md.AppendLine("  - Sin push: $($p.sinPush.commits) commit(s) de $($p.sinPush.rama) que no están en $($p.sinPush.remota)") }
+    else { [void]$md.AppendLine("  - Rama $($p.sinPush.rama) sin publicar en el remoto ($($p.sinPush.commits) commit(s))") }
+  }
+  if ($p.artefactosIgnorados) { [void]$md.AppendLine("  - ($($p.artefactosIgnorados) artefacto(s) de compilación/IDE ignorados)") }
+}
+[void]$md.AppendLine("`n## Otros TT mencionados en los commits (posible ticket origen de soporte)")
+[void]$md.AppendLine($(if ($resultado.ticketsRelacionados.Count) { $resultado.ticketsRelacionados -join ', ' } else { 'Ninguno.' }))
 if ($resultado.advertencias.Count) { [void]$md.AppendLine("`n## Advertencias"); foreach ($w in $resultado.advertencias) { [void]$md.AppendLine("- $w") } }
 [IO.File]::WriteAllText((Join-Path $Salida 'resumen.md'), $md.ToString(), (New-Object System.Text.UTF8Encoding($false)))
 
