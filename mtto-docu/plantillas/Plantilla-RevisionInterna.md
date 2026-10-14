@@ -7,7 +7,8 @@
 
 | Campo | Valor |
 |---|---|
-| Ticket VTiger | {{TT}} |
+| Ticket VTiger | {{TT}} (soporte: {{TT_ORIGEN}}) _(en cambios, solo {{TT}})_ |
+| Código pendiente de versionar | Ninguno / Justificado (ver 3.4) |
 | Tipo | Corrección / Cambio |
 | Cliente | {{CLIENTE}} |
 | Producto / sistema | {{PRODUCTO}} |
@@ -50,6 +51,14 @@ _Una tabla solo si hay scripts o DML; si no, una línea: "Sin cambios en base de
 
 - Orden de instalación y configuración (variables, `.ini`, servicios): _solo lo que aplique_.
 
+### 3.4 Código pendiente de versionar
+
+_Lo que reportó `Get-CambiosTT.ps1` al generar este documento y la razón que dio el desarrollador. Si no hubo: "Ninguno al generar el documento."_
+
+| Repo | Archivo / commits | Estado | Razón del desarrollador |
+|---|---|---|---|
+| | | Sin commit / Sin rastrear / Sin push | |
+
 ## 4. Revisión de código
 
 _Solo hallazgos reales o probables con los datos del cliente. Máximo 6. Sin observaciones de estilo salvo que afecten el mantenimiento. Si no hay: "Sin hallazgos."_
@@ -79,6 +88,7 @@ Tipos: **F** funcional · **N** negativo · **R** regresión · **BD** base de d
 ## 7. Liberación
 
 - [ ] Hallazgos atendidos o justificados; pruebas ejecutadas sin defectos Alta/Media abiertos.
+- [ ] Sin código pendiente de versionar en la rama, o lo de 3.4 resuelto (commit/push) o descartado.
 - [ ] Scripts de BD versionados y probados. _(quitar si no hay BD)_
 - [ ] Versión incrementada en los `.dof` de los ejecutables afectados.
 - [ ] Rama integrada a `main` por PR aprobado.

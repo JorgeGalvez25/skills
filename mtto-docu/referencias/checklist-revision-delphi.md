@@ -24,6 +24,7 @@ normales de una estación o rompen otro módulo).
 - Cambios de `Left/Top/Width/Height/TabOrder` no intencionales (se guardan al abrir el form en otra resolución). Señálalos para que se descarten si no son parte del cambio.
 - Campos persistentes nuevos (`TField`): requieren el campo en la BD **de todas las estaciones**.
 - Eventos desconectados (`OnClick = ` eliminado) o componentes borrados que el código aún usa.
+- Antes de reportar un hallazgo en un evento, confirmar en el `.dfm` que esté asignado (`OnClick = ...`) o que alguien lo llame (`git grep`); si no, es código muerto.
 - Longitud (`Size`) del `TStringField` igual a la del campo en BD.
 
 ## Unidades compartidas
