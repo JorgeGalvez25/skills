@@ -1,6 +1,6 @@
 ---
 name: rcalidad
-description: Genera los reportes mensuales de los indicadores 2 y 3 del Departamento de Mantenimiento — "Tasa de éxito de cambios liberados" y "Resolución definitiva de fallos" — a partir de los eventos LDP (antes LIBERADO) / REABIERTO / ORIGEN del canal de Slack #mtto y de la relación de fallos de /rfallos. Recibe el mes a reportar como YYYYMM (los casos de ese mes, con 30 días de seguimiento) y se ejecuta al mes siguiente. Crea MMYYYY_TasaExitoCambios.xlsx y MMYYYY_ResolucionDefinitivaFallos.xlsx. Usar cuando digan "/rcalidad YYYYMM", "indicadores 2 y 3", "tasa de éxito de cambios", "resolución definitiva de fallos" o "reaperturas del mes".
+description: 'Genera los reportes mensuales de los indicadores 2 y 3 del Departamento de Mantenimiento — "Tasa de éxito de cambios liberados" y "Resolución definitiva de fallos" — a partir de los eventos LDP (antes LIBERADO) / REABIERTO / ORIGEN del canal de Slack #mtto y de la relación de fallos de /rfallos. Recibe el mes a reportar como YYYYMM (los casos de ese mes, con 30 días de seguimiento) y se ejecuta al mes siguiente. Crea MMYYYY_TasaExitoCambios.xlsx y MMYYYY_ResolucionDefinitivaFallos.xlsx. Usar cuando digan "/rcalidad YYYYMM", "indicadores 2 y 3", "tasa de éxito de cambios", "resolución definitiva de fallos" o "reaperturas del mes".'
 argument-hint: YYYYMM
 ---
 
@@ -54,7 +54,20 @@ Devuelve `mes`, `periodo`, `finSeguimiento`, `corte`, `seguimientoCompleto`, `sl
 - `seguimientoCompleto: false` es lo normal (se ejecuta a inicios del mes siguiente): menciónalo en la entrega con la fecha de corte; no hace falta preguntar.
 - Sin relación de `/rfallos` del mes → propón correr primero `/rfallos YYYYMM`. Si eso no es posible (meses anteriores a 202609), ve a **Transición**.
 
-## Paso 2 — Leer los eventos del canal
+## Delegación (ahorro de tokens)
+
+Las búsquedas en Slack son lo que más tokens consume y no requieren criterio fino: **delégalas**; tú conservas las decisiones (paso 4), la generación y la entrega.
+
+| Tarea | Subagente (`Agent`, `general-purpose`) | Devuelve |
+|---|---|---|
+| Paso 2: búsquedas de eventos y `mensajes.json` | `model: "haiku"` | Ruta del archivo, mensajes por palabra clave, truncados que no pudo completar |
+| Paso 3: barrido de control | `model: "sonnet"`; si son más de 25 TT, divídelos en lotes de ~15 y lanza los agentes **en paralelo** en un solo mensaje | Solo los sospechosos: TT, fecha, autor, cita textual (≤ 2 líneas) y ts; más la lista de TT revisados sin hallazgo (solo IDs) |
+
+Pásale a cada subagente el texto completo de su paso, los datos de `preparar.js` que necesita (`slack.*`, lista de TT con su fecha base) y la ruta del scratchpad.
+Lanza el subagente del paso 2 en cuanto tengas la salida del paso 1. El del paso 3 necesita la lista de cambios del mes (sale de `datos.json`).
+Verifica tú cada sospechoso antes de preguntarle a Jorge (lee su ts con `slack_read_channel`, `limit: 1`). Nunca descartes un evento etiquetado por lo que diga un subagente.
+
+## Paso 2 — Leer los eventos del canal [subagente]
 
 Canal **#mtto**, privado, ID `C02CGD1D9NX`. Usa `slack_search_public_and_private` **cuatro veces**, una por palabra clave:
 
@@ -73,7 +86,7 @@ Guarda **todos** los mensajes encontrados, tal cual, en `<scratchpad>/mensajes.j
 [{"ts":"1791234567.000100","autor":"Saulo Lopez","texto":"LDP TT106586 | CAMBIO | Petroservicios | 09/10/2026"}]
 ```
 
-Después:
+Después (tú, con el archivo que escribió el subagente):
 
 ```bash
 node "C:/Users/jorge/.claude/skills/rcalidad/scripts/eventos.js" "<scratchpad>/mensajes.json" > "<scratchpad>/datos.json"
@@ -81,7 +94,7 @@ node "C:/Users/jorge/.claude/skills/rcalidad/scripts/eventos.js" "<scratchpad>/m
 
 Devuelve `cambios`, `fallosLdp`, `reaperturas`, `origenes`, `noLeidos` (líneas con la palabra clave mal escritas) y `avisos`.
 
-## Paso 3 — Barrido de control (menciones sin etiqueta)
+## Paso 3 — Barrido de control (menciones sin etiqueta) [subagente]
 
 Para detectar reaperturas que no se registraron con el formato, busca cada TT evaluado (fallos del paso 1 y cambios del mes) en el canal:
 `keywords: ["TT######"]`, `filters: "in:<#C02CGD1D9NX> after:<día anterior a su fecha base> before:<fecha base + 31 días>"` (para los cambios, `after:<slack.afterIncidencias>`), `content_types: "messages"`, `include_context: false`, `response_format: "concise"`.

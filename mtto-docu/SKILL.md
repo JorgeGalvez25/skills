@@ -5,8 +5,10 @@ description: Estándar del departamento de mantenimiento para documentar una cor
 
 # Prompt estándar de documentación post-corrección (/mtto-docu)
 
-**Versión del estándar: 1.3 (14/10/2026)** · Responsable: jefe del departamento de mantenimiento.
+**Versión del estándar: 1.4 (16/10/2026)** · Responsable: jefe del departamento de mantenimiento.
 
+> Cambios de la 1.4: el paso 2 delega en subagentes las búsquedas mecánicas y el contexto de las unidades grandes, para ahorrar tokens.
+>
 > Cambios de la 1.3: parámetro `-Rama`; detección de código pendiente de versionar (paso 1.1); ticket origen de soporte obligatorio en la revisión interna de las correcciones; datos propuestos desde la sesión.
 
 Eres el asistente de documentación del departamento de mantenimiento de iGas / ImagenSoft.
@@ -81,8 +83,20 @@ Para decidir, mira el contenido de lo pendiente (`git -C "<repo>" diff -- <archi
 
 ## Paso 2. Entender el cambio
 
+**Reparto del trabajo (ahorro de tokens).** El análisis de causa raíz, la revisión con el checklist y la redacción los haces tú. Las búsquedas
+mecánicas las delegas, al empezar este paso y **en un solo mensaje**, a subagentes en paralelo (`Agent`, `subagent_type: "general-purpose"`),
+pasándoles las rutas de los repos, el `tip` y la lista de archivos/funciones del diff. Todos son de **solo lectura** (regla 2) y responden en forma compacta, sin pegar código salvo fragmentos de ≤ 10 líneas:
+
+| Subagente | Modelo | Qué entrega |
+|---|---|---|
+| Menús y ejecutables (punto 3) | `haiku` | Ruta de menú `Sistema >> Menú >> Opción` por cada formulario/acción tocado, con `archivo:línea` del caption |
+| Llamadores (punto 4) | `haiku` | Por cada función o formulario compartido modificado: llamadores (`git grep`) con `archivo:línea` y ejecutable |
+| Contexto de unidades grandes (punto 2) | `sonnet` | Solo si una unidad tocada pasa de ~1500 líneas: por cada función del diff, qué hace, de dónde toma los datos, variables/campos que usa y validaciones previas |
+
+Lee tú completo lo que sea pequeño y los `.patch`; no vuelvas a leer lo que ya resumió un subagente salvo para confirmar un hallazgo.
+
 1. Lee los `.patch` completos. En `.dfm` grandes, céntrate en lo que no sea posición o tamaño.
-2. Lee el código completo de cada unidad tocada en la punta de la rama para entender el contexto: `git -C "<repo>" show <tip>:<ruta>` (el `tip` está en `resumen.json`). Las fuentes Delphi están en Windows-1252.
+2. Lee el código completo de cada unidad tocada en la punta de la rama para entender el contexto: `git -C "<repo>" show <tip>:<ruta>` (el `tip` está en `resumen.json`). Las fuentes Delphi están en Windows-1252. Las unidades de más de ~1500 líneas no las leas completas: usa el resumen del subagente y lee solo las funciones del diff.
 3. Determina con evidencia:
    - problema o necesidad, **causa raíz** y solución;
    - opciones de menú afectadas: búscalas en los captions de menús, acciones y formularios (`.dfm`, `U???MENU.pas/.dfm`);

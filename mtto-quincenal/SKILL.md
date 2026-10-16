@@ -1,6 +1,6 @@
 ---
 name: mtto-quincenal
-description: Genera la hoja quincenal del reporte a dirección "Seguimiento de Casos por Desarrollador" (Casos_por_Desarrollador_mantenimiento.xlsx). Toma la última hoja del archivo, lee los standups de #mtto desde esa fecha y los títulos de CambiosProceso.xlsx, y agrega una hoja nueva (dd-mm) solo con el trabajo vigente de cada desarrollador. Usar cuando digan "/mtto-quincenal", "genera la hoja de la reunión", "reporte de casos por desarrollador" o "hoja para dirección".
+description: 'Genera la hoja quincenal del reporte a dirección "Seguimiento de Casos por Desarrollador" (Casos_por_Desarrollador_mantenimiento.xlsx). Toma la última hoja del archivo, lee los standups de #mtto desde esa fecha y los títulos de CambiosProceso.xlsx, y agrega una hoja nueva (dd-mm) solo con el trabajo vigente de cada desarrollador. Usar cuando digan "/mtto-quincenal", "genera la hoja de la reunión", "reporte de casos por desarrollador" o "hoja para dirección".'
 argument-hint: "[dd/mm/aaaa (default: hoy)]"
 ---
 
@@ -38,8 +38,23 @@ node hoja.js titulos "C:/Users/jorge/Dropbox/MTTO/ReportesMTTO/CambiosProceso.xl
 
 `leer` devuelve las hojas existentes y las filas de la última (`dev`, `caso`, `estatus`, `obs`, `fecha`; ubica las columnas por encabezado, así que en hojas sin Estatus viene vacío). `titulos` devuelve `{TT#####: {titulo, dev, estatus}}` de los cambios.
 
-## Paso 2 — Leer #mtto del periodo
+## Paso 2 — Leer #mtto del periodo (subagente)
 
+**No leas el canal tú.** Calcula el `oldest` y delega a un subagente (`Agent`, `subagent_type: "general-purpose"`, `model: "haiku"`), lanzado
+**en el mismo mensaje** que los comandos del Paso 1 para que corran en paralelo. Pásale los puntos de abajo y pídele que escriba
+`<scratchpad>/estado_mtto.json` y responda solo con la ruta, el rango leído y cuántos standups por desarrollador:
+
+```json
+{ "rango": "28/09–12/10",
+  "devs": { "Saulo": { "ultimoStandup": "2026-10-12",
+    "tts": [ { "tt": "TT104919", "tipo": "C", "descripcion": "Monederos", "historial": [ ["2026-09-29", "Revisando"], ["2026-10-08", "Entregado, en espera de respuesta"] ], "enUltimo": true } ],
+    "sinTT": [ { "texto": "Pendiente de caso: piloto transmisor", "desde": "2026-10-01", "hasta": "2026-10-12" } ] } },
+  "eventos": [ "LDP TT106586 | CAMBIO | Petroservicios | 09/10/2026" ] }
+```
+
+`historial` registra solo los **cambios** de estatus (texto tal cual), no cada día. Tú armas el estado vigente (Paso 3) a partir de este archivo.
+
+Instrucciones para el subagente:
 - Canal **#mtto**, ID `C02CGD1D9NX`. `slack_read_channel` con `limit: 100`, `response_format: "concise"` y `oldest` = timestamp Unix de la fecha de la última hoja a las 00:00 MST (UTC-7; calcúlalo con `node -e`). Pagina si hay `cursor`.
 - Si el conector no está autorizado, avisa (conectores de claude.ai o `/mcp`) y detente.
 - Formato de los standups: secciones **standby** y **seguimiento** con `TT#####: estatus`. Los anteriores al 08/10/2026 traen "Ayer"/"Viernes" + "Hoy": usa solo "Hoy".

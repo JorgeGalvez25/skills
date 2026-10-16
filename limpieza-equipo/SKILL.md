@@ -52,7 +52,7 @@ Con administrador usa el evento `Win32_ProcessStartTrace` y atrapa incluso los p
 & "$SK\scripts\extraer-fotogramas.ps1" -Video "<ruta.mp4>" -OutDir "$INC\fotogramas" -Step 3
 ```
 
-El script usa las APIs de Windows; no requiere ffmpeg ni Python. Lee todos los fotogramas y anota nombres raros, procesos de script (`Windows Based Script Host`), herramientas de control remoto y consumos anormales. Confírmalo después en el sistema real: una grabación no muestra rutas ni procesos padre.
+El script usa las APIs de Windows; no requiere ffmpeg ni Python. Los fotogramas son muchas imágenes: **no los leas tú**. Delega su lectura a un subagente (`Agent`, `subagent_type: "general-purpose"`, `model: "sonnet"`) con la carpeta `$INC\fotogramas` y pídele una lista compacta (proceso, descripción, CPU/memoria/red, fotogramas donde aparece) de lo que encuentre. Que lea todos los fotogramas y anote nombres raros, procesos de script (`Windows Based Script Host`), herramientas de control remoto y consumos anormales. Confírmalo después en el sistema real: una grabación no muestra rutas ni procesos padre.
 
 ### Fase 1 · Auditoría (solo lectura)
 
@@ -76,7 +76,7 @@ Clasifica cada hallazgo con `references/indicadores.md`, que distingue lo malici
 ### Fase 2 · Análisis de lo sospechoso
 
 - **Scripts:** `& "$SK\scripts\inspeccionar-script.ps1" -Ruta <archivo>` saca el hash, los URL y los textos ofuscados con XOR, decodificados de forma estática. Así sabes a qué servidores se conecta y qué descarga.
-- **Procesos:** revisa los marcados con `<<<` en `vigilancia.txt`; ya traen su línea de comandos y su padre. Si el padre es «svchost (Programador de tareas)», lo lanzó una tarea programada: búscala en la auditoría. Si es `WmiPrvSE.exe`, revisa las suscripciones WMI. Para un proceso concreto, sigue la cadena con `Win32_Process` (ParentProcessId).
+- **Procesos:** revisa los marcados con `<<<` en `vigilancia.txt` (búscalos con `Grep`, no leas el archivo entero); ya traen su línea de comandos y su padre. Si el padre es «svchost (Programador de tareas)», lo lanzó una tarea programada: búscala en la auditoría. Si es `WmiPrvSE.exe`, revisa las suscripciones WMI. Para un proceso concreto, sigue la cadena con `Win32_Process` (ParentProcessId).
 - **Fechas:** cruza las fechas de creación de carpetas, archivos, tareas y eventos 5007 de Defender. Todas las piezas de una instalación suelen nacer en el mismo minuto. **Busca todo lo creado en esa ventana**, sin importar el nombre; así encontramos DLL que el patrón de nombres no detectaba.
 - **Historial:** las carpetas vacías de `VirtualStore` y los eventos 5007 revelan cuánto tiempo lleva la infección. Fecha el inicio.
 - **Origen:** las exclusiones del tipo `E:\Programa.exe`, `C:\` o `.exe/.dll/.wsf` suelen delatar el activador o crack que pidió desactivar el antivirus.
