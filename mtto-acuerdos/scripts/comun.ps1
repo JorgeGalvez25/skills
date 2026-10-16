@@ -28,6 +28,7 @@ function Get-ClaveModulo([string]$m) {
     '^(igasfacturacion|facturacion)$' { return 'igasfacturacion' }
     '^(igasadministrador|igasadmin)$' { return 'igasadministrador' }
     '^convertidor'               { return 'convertidor' }
+    '^actualizador'              { return 'actualizador' }
     default { return $k }
   }
 }

@@ -51,6 +51,11 @@ try {
     if ($id -eq '') { continue }
     $c = $casosLista | Where-Object { $_.id -eq $id } | Select-Object -First 1
     if (-not $nuevo -and $c -and $c.tester -and $ws.Cells.Item($r, 6).Text.Trim() -eq '') { $ws.Cells.Item($r, 6).Value2 = (Normalize-Persona $c.tester) }
+    # Responsable y Tester siempre con el nombre canónico del equipo
+    foreach ($col in 5, 6) {
+      $t = $ws.Cells.Item($r, $col).Text.Trim()
+      if ($t -and (Normalize-Persona $t) -ne $t) { $ws.Cells.Item($r, $col).Value2 = (Normalize-Persona $t) }
+    }
     $e = $data | Where-Object { $_.id -eq $id } | Select-Object -First 1
     if ($e) {
       $ws.Cells.Item($r, 7).Value2 = [string]$e.G
