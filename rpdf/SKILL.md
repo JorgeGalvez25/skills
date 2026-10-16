@@ -29,11 +29,15 @@ Requiere Excel y Word instalados (se usan por COM). No hay Python en el equipo.
    - `ensancha` / `reduce fuente`: las celdas cuyo texto no cabía y cómo se corrigieron.
    - `ERROR ...`: cualquier error o paso que excedió su tiempo límite.
    - `PNG ...`: una imagen por página, en `%TEMP%\rpdf_<nombre de la carpeta>\`.
-2. **Verifica visualmente** con Read **solo las imágenes de páginas que vienen de Excel**. Las de Word salen fieles al original y no hace falta revisarlas. En cada imagen, comprueba que:
+2. **Verifica visualmente** **solo las imágenes de páginas que vienen de Excel**. Las de Word salen fieles al original y no hace falta revisarlas.
+   Las imágenes cuestan muchos tokens: **no las leas tú**. Delega la revisión a un subagente (`Agent`, `subagent_type: "general-purpose"`, `model: "sonnet"`)
+   pasándole las rutas de los `PNG` de Excel y estos criterios; en cada imagen debe comprobar que:
    - no haya texto cortado en títulos, encabezados ni celdas;
    - las gráficas aparezcan completas;
-   - no haya columnas ni filas fuera de la página.
+   - no haya columnas ni filas fuera de la página;
+   - y anotar caracteres raros (□□) que vengan del original.
 
+   Pídele que responda solo con `imagen | OK` o `imagen | problema concreto (hoja, celda o zona)`. Abre tú con Read únicamente las imágenes que marque con problema, para confirmarlo.
    Si todo está bien, no hagas nada más.
 3. **Reporta** en una tabla breve: cada PDF con su papel, orientación y escala. Agrega, en una línea cada uno:
    - los ajustes de `ensancha` y `reduce fuente`;

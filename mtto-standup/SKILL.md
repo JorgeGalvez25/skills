@@ -1,6 +1,6 @@
 ---
 name: mtto-standup
-description: Revisión de cierre del día de los standups del equipo de Mantenimiento en #mtto. Compara el standup de hoy de cada colaborador con sus anteriores (Hoy vs. Hoy previo, TT que desaparecen sin cierre, seguimiento copiado, contadores x2/x3, retrocesos de estatus, IDs mal escritos, errores de dedo, trabajo sin caso, eventos LDP/REABIERTO/ORIGEN faltantes, estancamiento) y redacta un mensaje directo para cada colaborador con lo que debe corregir. Antes lee lo que cada colaborador respondió por DM a la retro anterior: propone corregir la retro cuando la respuesta la invalida y guarda las aclaraciones aceptadas para que no se repitan. Solo muestra los borradores; los envía por DM únicamente con autorización explícita. Usar cuando digan "/mtto-standup", "revisa los standups", "revisión de standups de hoy", "/mtto-standup respuestas", "revisa qué contestaron a la retro".
+description: 'Revisión de cierre del día de los standups del equipo de Mantenimiento en #mtto. Compara el standup de hoy de cada colaborador con sus anteriores (Hoy vs. Hoy previo, TT que desaparecen sin cierre, seguimiento copiado, contadores x2/x3, retrocesos de estatus, IDs mal escritos, errores de dedo, trabajo sin caso, eventos LDP/REABIERTO/ORIGEN faltantes, estancamiento) y redacta un mensaje directo para cada colaborador con lo que debe corregir. Antes lee lo que cada colaborador respondió por DM a la retro anterior: propone corregir la retro cuando la respuesta la invalida y guarda las aclaraciones aceptadas para que no se repitan. Solo muestra los borradores; los envía por DM únicamente con autorización explícita. Usar cuando digan "/mtto-standup", "revisa los standups", "revisión de standups de hoy", "/mtto-standup respuestas", "revisa qué contestaron a la retro".'
 argument-hint: "[ayer (default) | hoy | dd/mm/aaaa | respuestas]"
 ---
 
@@ -18,6 +18,18 @@ de mensaje directo por colaborador y **solo envías los que autorice**.
 
 **Script:** `C:\Users\jorge\.claude\skills\mtto-standup\scripts\revisar.js` (Node, sin dependencias). JSON de trabajo en el scratchpad.
 **Aclaraciones:** `C:\Users\jorge\.claude\skills\mtto-standup\aclaraciones.json` (persistente; el script lo lee solo; ver "Aclaraciones" al final).
+
+## Delegación (ahorro de tokens)
+
+Las lecturas de Slack son mecánicas y voluminosas: **no las hagas tú**. Al empezar, calcula los timestamps con `node -e` y lanza en **un solo mensaje**
+dos subagentes en paralelo (`Agent`, `subagent_type: "general-purpose"`, `model: "haiku"`), con las instrucciones exactas de los Pasos 0 y 1 marcadas como **[subagente]**:
+
+- **Lector del canal** (Paso 1) → escribe `<scratchpad>/standups.json`.
+- **Lector de DMs** (Paso 0, puntos 1–3) → escribe `<scratchpad>/retros.json`.
+
+Pídeles que respondan solo con: archivo escrito, número de mensajes, rango de fechas y mensajes que no pudieron leer completos (nada del contenido).
+Con `/mtto-standup respuestas` lanza solo el lector de DMs. Tú haces la clasificación (Paso 0.4), Pasos 2–5 y todo envío: **nunca delegues
+la redacción ni el envío de mensajes**. Si un subagente falla o el conector no está autorizado, avisa y detente; no repitas tú la lectura completa salvo que Jorge lo pida.
 
 ## Reglas que no se negocian
 
@@ -71,14 +83,17 @@ Eventos aparte (mensaje propio, ver `C:\Users\jorge\.claude\skills\rcalidad\GUIA
 
 ## Paso 0 — Leer las respuestas a la retro anterior
 
-Por cada colaborador del equipo:
+Puntos 1–3 **[subagente]**: por cada colaborador del equipo (pásale la tabla "Equipo"):
 1. `slack_read_channel` con `channel_id` = su User ID (abre el DM), `limit: 50`, `response_format: "detailed"` (para ver si hay hilos) y
    `oldest` = 10 días naturales antes de la fecha revisada. Si un mensaje de la retro tiene respuestas en hilo, léelas con `slack_read_thread`.
 2. Identifica las **retros**: mensajes de Jorge que empiezan con "Hola <nombre>, revisé tu standup" o "Hola <nombre>, no encontré tu standup"
    (suelen terminar en "Enviado usando Claude"). Toma la más reciente, y también las anteriores que no tengan respuesta ni seguimiento.
 3. Las **respuestas** son los mensajes del colaborador posteriores a esa retro (en el DM o en su hilo) y anteriores a la siguiente retro.
    El DM también tiene pláticas que no tienen que ver (comida, PRs, asignación de casos): ignóralas salvo que mencionen un TT o un punto de la retro.
-4. Clasifica cada punto de la retro según la respuesta y lo que hoy muestra #mtto (después del Paso 1, si ya editó el standup):
+   El subagente guarda, sin resumir, en `<scratchpad>/retros.json`:
+   `[{"colaborador":"Saulo Lopez","userId":"U058Z1DJ75G","retro":{"ts":"…","fecha":"AAAA-MM-DD HH:MM","texto":"…"},"respuestas":[{"ts":"…","fecha":"…","enHilo":true,"texto":"…"}]}]`
+   (una entrada por retro tomada; colaborador sin retros → `"retro": null`).
+4. **(Tú)** Lee `retros.json` y clasifica cada punto de la retro según la respuesta y lo que hoy muestra #mtto (después del Paso 1, si ya editó el standup):
 
 | Clase | Cuándo | Qué propones |
 |---|---|---|
@@ -94,7 +109,7 @@ Por cada colaborador del equipo:
 
 Si no hay retros previas en el DM, sigue al Paso 1.
 
-## Paso 1 — Leer el canal
+## Paso 1 — Leer el canal [subagente]
 
 - Canal **#mtto**, ID `C02CGD1D9NX`. `slack_read_channel` con `limit: 100`, `response_format: "concise"` y `oldest` = timestamp Unix de
   **10 días naturales antes** de la fecha revisada a las 00:00 (calcúlalo con `node -e` para no equivocarte de año). Si hay `cursor`, pagina.

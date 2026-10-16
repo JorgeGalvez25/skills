@@ -1,6 +1,6 @@
 ---
 name: mtto-fechas
-description: Revisa el canal de Slack #mtto y compara los standups diarios del equipo de mantenimiento con una captura del tablero de tickets (columnas PROCESO / ENTREGADO con TT#####, responsable y fecha) para decir a qué tickets hay que moverles la fecha, cuáles revisar/cerrar y cuáles van bien. Usar cuando digan "/mtto-fechas", adjunten la imagen del tablero, o pregunten "a cuál le muevo la fecha".
+description: 'Revisa el canal de Slack #mtto y compara los standups diarios del equipo de mantenimiento con una captura del tablero de tickets (columnas PROCESO / ENTREGADO con TT#####, responsable y fecha) para decir a qué tickets hay que moverles la fecha, cuáles revisar/cerrar y cuáles van bien. Usar cuando digan "/mtto-fechas", adjunten la imagen del tablero, o pregunten "a cuál le muevo la fecha".'
 ---
 
 # Revisión de fechas del tablero vs. #mtto (/mtto-fechas)
@@ -14,8 +14,18 @@ Extrae de la captura, por cada tarjeta: **columna** (PROCESO / ENTREGADO), **TT#
 **responsable** y **fecha** (formato dd/mm/aaaa). Ignora el número del círculo junto al reloj (no interpretarlo).
 Si no hay imagen adjunta, pídela y detente.
 
-## 2. Leer el canal #mtto
+## 2. Leer el canal #mtto (subagente)
 
+**No leas el canal tú.** Calcula el `oldest` con `node -e` y delega la lectura a un subagente (`Agent`, `subagent_type: "general-purpose"`,
+`model: "haiku"`); puedes lanzarlo **antes** de leer la imagen, para que trabaje mientras tanto. Pásale esta sección completa (incluida
+"Cómo son los mensajes") y pídele que entregue **solo** el estado por TT, una línea cada uno, sin transcribir los mensajes:
+
+`TT##### | responsable | último estatus tal cual | fecha de ese standup | ¿sigue en el último standup del responsable? (sí/no) | estatus previos con fecha, breves`
+
+más una línea con el rango leído y el último standup de cada responsable. El cruce con el tablero (paso 3) lo haces tú. Si necesitas el
+texto exacto de un caso dudoso, pídeselo al mismo subagente con `SendMessage` en lugar de releer el canal.
+
+Instrucciones para el subagente:
 - Canal: **#mtto**, privado, ID `C02CGD1D9NX` (el usuario a veces escribe "mmto"; es el mismo).
 - Herramienta: `slack_read_channel` con `channel_id=C02CGD1D9NX`, `limit=100` y `oldest` = timestamp Unix
   de **hace ~12 días** (calcúlalo con cuidado a partir de la fecha de hoy; un error de año trae meses de
