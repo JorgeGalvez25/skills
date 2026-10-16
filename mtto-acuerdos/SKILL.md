@@ -23,7 +23,7 @@ argument-hint: "[versión, p. ej. 4.3.13.0 (default: carpeta actual)] [fecha reu
    ```powershell
    & "C:\Users\jorge\.claude\skills\mtto-acuerdos\scripts\extraer.ps1" -Carpeta "<carpeta>" -Salida "<scratchpad>"
    ```
-   Genera `<scratchpad>\casos.json` (A–F por caso) y `<scratchpad>\digest.md`. Leer el digest completo con Read (una sola lectura): trae la tabla de casos (qué TT no tiene informe, tester ya asignado, filas con G/H llenos) y, por informe, las secciones 1 (Ficha), 2 (Resumen técnico), 3.1/3.3 (archivos modificados, BD y configuración) y 4 (hallazgos).
+   Genera `<scratchpad>\casos.json` (A–F por caso) y `<scratchpad>\digest.md`. Leer el digest completo con Read y `allow_large: true` (una sola lectura; sin esa opción se corta en versiones con muchos casos): trae la tabla de casos (qué TT no tiene informe, tester ya asignado, filas con G/H llenos) y, por informe, las secciones 1 (Ficha), 2 (Resumen técnico), 3.1/3.3 (archivos modificados, BD y configuración) y 4 (hallazgos).
    - Si alguna fila ya tiene G/H llenos, preguntar antes de sobrescribirla.
 2. **Redactar** `<scratchpad>\acuerdos.json` con Write: arreglo `[{ "id", "G", "H", "I", "J" }]`, solo para los TT con informe. Saltos de línea dentro de I y J con `\n`. Seguir los criterios de abajo y el ejemplo `references\ejemplo-4.3.12.0.json`.
 3. **Asignar testers** (solo a los casos sin tester; usa G e I del paso 2):
@@ -37,6 +37,7 @@ argument-hint: "[versión, p. ej. 4.3.13.0 (default: carpeta actual)] [fecha reu
    ```
    Su salida (fila | ID | responsable | tester | complejidad | versión | fecha) es la verificación; no volver a abrir el archivo.
 5. **Resumen al usuario** con este formato: qué se llenó o creó y de dónde salió; tabla de carga por tester (casos, Alta, Media, Baja, puntos) y la asignación caso → tester; reparto de complejidad en una tabla (Alta / Media / Baja con sus TT); tabla de los casos donde la complejidad difiere de la que trae el informe; acuerdos con pendientes agrupados por tipo; y la lista "Revisa esto antes de la reunión" (TT sin informe, Fallos sin ID Soporte, fecha usada si fue la de hoy, URLs de repositorio que quedaron en la base del repo).
+6. **Casos de atención especial** (mensaje aparte, después del resumen): guardar el análisis en `<carpeta>\Atencion_Especial_<versión>.md` con Write (título "Casos que requieren atención especial — versión <versión>", fecha de reunión y número de casos analizados) y luego mandarlo como el último mensaje. Se analiza con el digest del paso 1 y lo decidido en los pasos 2–4; no se lee nada más. Ver criterios en "Criticidad".
 
 ## Criterios de llenado
 
@@ -51,13 +52,15 @@ Ejemplos 4.3.12.0 (informe → hoja): TT102499 Media→Baja (dos repos, +3 y +18
 ### H · Acuerdos
 - Siempre empieza con **"Se aplicará solución de la evidencia."**. Si no hay nada más que decir, queda solo esa frase.
 - Agregar una o dos frases cortas, en futuro impersonal ("Se atenderá…", "Se revisará…", "Se subirán…"), solo con lo que cambie la liberación:
-  - Hallazgos **Alta o Media** no atendidos de la sección 4: nombrarlos por ID y en pocas palabras (p. ej. "Se atenderán H1 y H2 (ticket nil y Q_Impo sin inicializar en Master_Cup)"). Los Baja no se mencionan.
+  - Hallazgos **Alta o Media** no atendidos de la sección 4, solo si cambian lo que se entrega en esta versión. Se redactan como la acción concreta que se hará, tomada de la columna Sugerencia, no como "Se atenderán H1 y H2 (…)" (TT103931 H1 → "El ajuste se moverá después de las validaciones del turno y permiso para generar poliza."). Si la causa queda fuera del cambio: "La corrección de X se atenderá en ticket aparte." No se mencionan los Baja ni los Media que son variantes de otro escenario del mismo ajuste, casos secundarios del script o código entregado (p. ej. trigger solo BEFORE INSERT), otros clientes, bitácoras o mejoras (TT103931 H2 y TT99470 H1/H2 no se mencionaron).
+  - Hallazgos que dependen de cómo opera el usuario (reimportar un archivo después de un fallo, capturar datos incorrectos, repetir un proceso) no los corrige el sistema: se dejan bajo responsabilidad del usuario (TT103813: "La duplicidad de pólizas al reimportar un archivo después de un fallo queda bajo responsabilidad del usuario.").
   - Cambios **sin commit / pendientes de commit** que haya que subir a la rama.
   - **Orden o simultaneidad de instalación** (Master y Kioscos al mismo tiempo; servicio Master antes que Panel; DLL y XML juntos).
-  - **Scripts de BD** no versionados o cambios de tablas que deben ir en el actualizador.
+  - **Scripts de BD** no versionados o cambios de tablas: van al ActualizadorBD ("el script se subirá al ActualizadorBD"; nunca "al repositorio de scripts" ni "junto con TT#####"). Si el caso es solo de BD, incluir también los pasos de aplicación en una frase (TT99470: "Se ejecutará el script de DPVGDOCU.TOTALCMB en Gas Consola y se regenerará el layout del periodo en el portal del Convertidor; el script se subirá al ActualizadorBD").
   - **Variable que activa el cambio** ("Se activa con la variable X=Si.").
   - **Fuera de alcance relevante para soporte** (datos ya inconsistentes que soporte debe corregir; algo que no corrige; "se atenderá en ticket aparte").
-- Sin backticks, sin rutas de archivo largas; nombres de unidades/variables tal cual.
+- Lenguaje funcional, como lo diría el equipo en la reunión: describir lo que el usuario ve, no el nombre del método o las siglas internas (ValidaTurnoCXC y ChecaDerechoEspecialAutor3 → "las validaciones del turno y permiso para generar poliza", no "validaciones de CxC y autorización"). Tablas, campos, triggers y variables sí van tal cual (DGASLIQGTRIGGER2, DPVGDOCU.TOTALCMB).
+- Sin backticks, sin rutas de archivo largas.
 
 ### I · Módulos y J · Repositorios
 Un módulo por línea en I y su URL en la misma posición en J (separados con `\n`). Orden: el módulo principal del caso primero. Catálogo (carpeta del archivo modificado → módulo → URL):
@@ -86,6 +89,7 @@ Un módulo por línea en I y su URL en la misma posición en J (separados con `\
 | EstacionFacCts | EstacionFacCts | `https://dev.azure.com/igasmxproyectos/_git/EstacionFacCts` |
 | SVN TransmisorNET | Transmisor | `svn://192.168.0.2/Fuentes Desarrollo/Ramas 2015/ImagenSoft Net/IGas/Volumetricos/TransmisorNET` |
 | SVN Nómina | Nómina | `svn://192.168.0.2/Fuentes Desarrollo/Ramas 2015/Imagen Ib Nom/Nom` |
+| Caso solo de BD (sin rama; scripts `.sql` en 3.3) | ActualizadorBD | `https://dev.azure.com/igasmxproyectos/ActualizadorBD` |
 
 (`…` = mismo prefijo de la fila anterior del mismo repo; en el JSON siempre escribir la URL completa.)
 - Listar solo las carpetas con cambios funcionales: `DDMGAS` compartido dentro de `Gas/` no agrega "Igas Administrador" si el cambio es de Liquidaciones, salvo que el informe lo marque como ejecutable directo con pantalla propia (TT104035 quedó solo Liquidaciones).
@@ -93,6 +97,23 @@ Un módulo por línea en I y su URL en la misma posición en J (separados con `\
 
 ### K · Versión y L · FechaReunion
 Las pone `llenar.ps1` en todas las filas: K = nombre de la carpeta (texto), L = fecha de reunión (`dd/mm/aaaa`).
+
+### Criticidad (paso 6)
+Se mide por el impacto en el cliente si algo sale mal en producción, no por la complejidad del código. Señales, de mayor a menor peso:
+- **Dinero o fiscal:** cambia importes, precios, pagos, cupones o paquetes; pólizas contables; cálculo de impuestos o timbrado de CFDI.
+- **Modifica datos sin intervención del usuario:** UPDATE o ajustes automáticos en tiempo de ejecución, scripts con carga masiva o migración, triggers nuevos.
+- **Instalación coordinada:** cambio de firma entre módulos (Master/Kioscos, Master/Panel), orden obligatorio de instalación, DLL y XML juntos, cambios de BD que deben ir en el ActualizadorBD.
+- **Alcance amplio:** unidad compartida usada por muchos ejecutables (DDMGAS, DDMLIQ), varios repos o procesos automáticos de producción (servicios, reinicios, controlador).
+- **Pendientes que bloquean la liberación:** hallazgos Alta/Media sin atender, cambios sin commit, scripts no versionados, causa raíz abierta ("se atenderá en ticket aparte"), riesgo Alto/Medio en la ficha del informe. No cuentan los hallazgos que quedaron bajo responsabilidad del usuario en el acuerdo.
+- **Prueba difícil:** el tester asignado no tiene historial en ese módulo (motivo del paso 3), o el caso requiere hardware, BD del cliente o un escenario difícil de reproducir.
+
+Formato del mensaje:
+- Tabla ordenada de mayor a menor criticidad, con 3 a 6 casos como máximo: TT · Nivel (**Crítico** / **Atención**) · Responsable → Tester · Por qué (una o dos señales concretas del informe, en lenguaje funcional) · Qué cuidar (qué confirmar en la reunión o qué escenario debe probar el tester).
+- **Crítico:** dinero/fiscal o datos modificados automáticamente, con al menos otra señal. **Atención:** una sola señal relevante.
+- Si un tester concentra dos o más casos Crítico, decirlo en una línea para que se valore reasignar.
+- Los casos con alguna señal que no entraron en la tabla van en una línea "También con una señal: TT… (motivo breve)".
+- Al final, una línea con los casos que no requieren atención especial ("El resto son cambios acotados: TT…, TT…").
+- Si ningún caso tiene señales, decirlo en una línea. No repetir el resumen del paso 5.
 
 ### Filas sin informe
 No se inventan: G–J quedan vacías (como TT91675 en 4.3.11.0) y solo reciben K y L. Avisarlo en el resumen.
@@ -104,5 +125,5 @@ Desde la 4.3.7.0 no hay testers dedicados: el equipo de Mantenimiento (Martín R
 3. **Complejidad repartida:** los Alta y Media se asignan primero, al tester con menos puntos pesados acumulados (Alta=3, Media=2), para que nadie concentre los casos difíciles.
 4. **Afinidad por historial de módulos:** entre los que tienen cupo, se prefiere a quien más ha probado esos módulos en versiones anteriores (Tablet→Susana, Contabilidad/IVA→Miguel, Liquidaciones→Martín/Miguel…), con una penalización si ya recibió casos del mismo desarrollador en esta versión, para que cada desarrollador reparta sus casos entre los otros tres.
 - El historial vive en `references\historial.csv` (caché); el script agrega solo las versiones nuevas (≥ 4.3.7.0 y anteriores a la actual) leyendo su Excel.
-- Los nombres se normalizan (Gamez/Gómez → **Susana Gámez**). Los casos sin informe cuentan con peso 1 y sin afinidad.
+- Los nombres se normalizan (Gamez/Gómez → **Susana Gámez**). `llenar.ps1` también corrige el Responsable y el Tester que ya estaban escritos en el Excel. Los casos sin informe cuentan con peso 1 y sin afinidad.
 - Si el equipo cambia, actualizar `$Equipo` en `comun.ps1`.
