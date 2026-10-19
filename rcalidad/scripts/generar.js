@@ -31,7 +31,7 @@ function filaDato(ws, f, cE, cV, etiqueta, valor, numFmt) {
 }
 
 // Reaperturas del mismo TT u ORIGEN que lo apunten, dentro de [base, base + 30 días]
-// Cambios (desdeEntrega): la reapertura ocurre entre la entrega o RSP y la LDP, así que cuenta todo lo anterior
+// Cambios (desdeEntrega): la reapertura ocurre entre el RSP y la LDP, así que cuenta todo lo anterior
 // a la LDP más los 30 días posteriores. Fallos: los 30 días posteriores a la fecha real de respuesta.
 function incidencias(id, base, datos, desdeEntrega) {
   const lim = sumarDias(base, DIAS_SEGUIMIENTO);

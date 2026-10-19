@@ -27,7 +27,7 @@ Sin títulos de día ("Ayer", "Viernes", "Hoy"): directo con las secciones **sta
 - **Una vez iniciadas las pruebas no hay retroceso ni reapertura:** lo que encuentre el tester se corrige en el mismo TT hasta la LDP.
 - **LDP**: el tester terminó sus pruebas y mandó el correo de liberación de pruebas (cambios, mejoras y fallos). Ese día el caso aparece como `TT#####: LDP` y además se publica el evento LDP (abajo).
 - Los casos que llegan y se resuelven el mismo día también se anotan, con su estatus final.
-- **Cancelado** se anota dentro del standup (`TT#####: Cancelado` o `CANCELADO TT##### | CAMBIO | Cliente | dd/mm/aaaa`); con eso el caso deja de tener seguimiento. Úsenlo solo cuando ya esté cancelado, no cuando "probablemente se cancele". Si se retoma, vuelve a aparecer con su estatus nuevo.
+- **Cancelado** se anota dentro del standup (`TT#####: Cancelado` o `CANCELADO TT##### | CAMBIO | Cliente | dd/mm/aaaa`); con eso el caso deja de tener seguimiento. Pueden anotarlo en cuanto se decide cancelar, pero entonces el caso ya no aparece en el siguiente standup (si se va a cerrar con CEC, anoten directamente CEC). Si se retoma, es reapertura: lleva REABIERTO (abajo).
 
 **2. Eventos**
 Con ellos se calculan los indicadores de **Tasa de éxito de cambios liberados** y **Resolución definitiva de fallos**. Se evalúa al departamento, no a la persona.
@@ -45,9 +45,10 @@ Ejemplo: `LDP TT100001 | CAMBIO | Estación Ejemplo | 09/10/2026`
 - Lo publica el desarrollador responsable del TT.
 - Un solo registro por TT.
 
-**b) Un caso Entregado o en RSP regresa a revisión** (la solución no funcionó o el problema volvió)
+**b) Un caso en RSP, con CEC o Cancelado regresa a revisión o desarrollo** (la solución no funcionó, el problema volvió o se retomó)
 Formato: `REABIERTO TT##### | motivo breve`
 Ejemplo: `REABIERTO TT100002 | siguen sin actualizarse los inventarios de aceites`
+- Un caso Entregado que regresa a revisión no es reapertura: todavía no lo da por bueno el cliente.
 - Después de la LDP el caso ya no se reabre: si aparece un problema, va en un TT nuevo y, si lo causó ese caso, con ORIGEN.
 
 **c) Un caso nuevo causado por un TT anterior** (un cambio metió un error o un fallo corregido reapareció con otro número)
@@ -57,7 +58,9 @@ Ejemplo: `ORIGEN TT100003 <- TT100001 | la factura de contado falla desde que se
 **Qué cuenta y qué no** (en Slack va como viñetas, porque las tablas no se muestran al editar)
 | Situación | ¿Se registra? |
 |---|---|
-| El caso estaba Entregado o en RSP y el cliente dice que la corrección no resolvió el problema | Sí: REABIERTO |
+| El caso estaba en RSP y el cliente dice que la corrección no resolvió el problema | Sí: REABIERTO |
+| Un caso con CEC o Cancelado se retoma | Sí: REABIERTO |
+| El caso estaba Entregado (en espera de respuesta) y regresa a revisión | No: va en el standup con su estatus nuevo |
 | Después de la LDP aparece un error provocado por ese cambio | Sí: ORIGEN nuevo <- cambio |
 | Caso nuevo con la misma causa raíz de uno ya corregido | Sí: ORIGEN nuevo <- anterior |
 | El tester encuentra algo una vez iniciadas las pruebas (antes de la LDP) | No: no hay retroceso ni reapertura; se corrige en el mismo TT |

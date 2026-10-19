@@ -37,7 +37,7 @@ No hay Python: todo se ejecuta con `node` desde la herramienta Bash con rutas ab
 - **LDP de fallos** (`LDP TT##### | FALLO | ...`): `eventos.js` los devuelve en `fallosLdp`. No cambian el ind. 3, cuyo universo y fecha base salen de `/rfallos`; sirven para cruzar contra la relación.
 - **Fallo evaluable (ind. 3):** cada caso del detalle de `$RAIZ\YYYYMM\MMYYYY_RelacionFallosAtendidos.xlsx` (salida de `/rfallos`, ya sin cancelados). Fecha base = "Fecha real de respuesta".
 - **Incidencia:** hay un `REABIERTO` del mismo TT o un `ORIGEN TT_nuevo <- TT_evaluado` en la ventana. Con una basta para que el caso quede en "No".
-  - **Cambios:** la reapertura ocurre cuando el caso pasa de Entregado o RSP (Revisión SCRUM Pendiente) a revisión, es decir, **antes** de la LDP; después de la LDP ya no se reabre (un problema nuevo es otro TT, con ORIGEN). Por eso cuenta cualquier REABIERTO u ORIGEN anterior a la LDP más los 30 días posteriores.
+  - **Cambios:** la reapertura ocurre cuando el caso pasa de RSP (Revisión SCRUM Pendiente), CEC o Cancelado a revisión (desde el 16/10/2026; antes también de Entregado), es decir, **antes** de la LDP; después de la LDP ya no se reabre (un problema nuevo es otro TT, con ORIGEN). Por eso cuenta cualquier REABIERTO u ORIGEN anterior a la LDP más los 30 días posteriores.
   - **Fallos:** los 30 días posteriores a la fecha real de respuesta.
 - `ORIGEN` sirve para ambos indicadores: si el TT anterior es un cambio, cuenta en el 2; si es un fallo, en el 3.
 
@@ -102,7 +102,7 @@ Para detectar reaperturas que no se registraron con el formato, busca cada TT ev
 Márcalo como **sospechoso** solo si una mención **posterior a la fecha base** (en los cambios, cualquiera hasta 30 días después de su LDP) indica que el problema regresó o la corrección no funcionó
 ("reabre", "regresó", "otra vez", "de nuevo", "nuevamente", "persiste", "sigue fallando", "no quedó", "lo rechazaron", "volvió a").
 Que el TT siga en los standups como "Entregado, en espera de respuesta", "RSP" o "CEC" **no** es reapertura.
-Sí es reapertura que el caso pase de Entregado o RSP a revisión porque la solución no funcionó. Una vez iniciadas las pruebas (SDP, tester, integración) no hay reapertura: lo que encuentre el tester se corrige en el mismo TT hasta la LDP. No marques sospechosos en ese tramo.
+Sí es reapertura que el caso pase de RSP, CEC o Cancelado a revisión o desarrollo (desde el 16/10/2026). Que pase de Entregado a revisión no lo es (antes del 16/10/2026 sí contaba). Una vez iniciadas las pruebas (SDP, tester, integración) no hay reapertura: lo que encuentre el tester se corrige en el mismo TT hasta la LDP. No marques sospechosos en ese tramo.
 
 ## Paso 4 — Resolver dudas con el usuario (AskUserQuestion, varias por llamada)
 

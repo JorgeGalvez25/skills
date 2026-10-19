@@ -70,7 +70,8 @@ function rango(est) {
   if (/revis|analis|consult|espera|pausa|pendiente|standby/.test(s)) return 1;
   return 0;
 }
-const esFinal = est => esCierre(est) || /\brsp\b/i.test(sinAcentos(est));
+const esRsp = est => /\brsp\b|revision scrum/i.test(sinAcentos(est));
+const esFinal = est => esCierre(est) || esRsp(est);
 
 // Pruebas iniciadas: una vez que el caso entra a pruebas no hay retroceso ni reapertura hasta la LDP;
 // lo que encuentre el tester se corrige en el mismo TT. SDP, tester o "en espera de LDP" lo indican siempre;
@@ -112,7 +113,7 @@ function erroresDedo(texto) {
 }
 
 // Códigos de estatus del formato abreviado de Saulo (RSP, CEC y LDP se quedan igual)
-const CODIGOS = { P: 'Pausa', R: 'Revisando', D: 'Desarrollo', PIL: 'Piloto', ENT: 'Entregado', EST: 'Preguntar estatus', CAN: 'Cancelado' };
+const CODIGOS = { P: 'Pausa', R: 'Revisando', AN: 'Analizando', D: 'Desarrollo', PIL: 'Piloto', ENT: 'Entregado', EST: 'Preguntar estatus', CAN: 'Cancelado' };
 
 // Convierte el texto de un standup en bloques { etiqueta, items[] }.
 // Sin título de día, la primera sección standby/seguimiento abre el bloque "hoy".
@@ -253,22 +254,34 @@ try {
         if (prev.contador && !it.contador && llave(prev.estatus) === llave(it.estatus))
           h.push({ regla: 'contador', tt, detalle: `${tt}: tenía x${prev.contador} y hoy no trae contador con el mismo estatus.` });
       }
-      // Reapertura: de Entregado o RSP regresa a revisión/codificación. Se compara con la última vez que apareció,
-      // porque un caso en RSP puede salir del standup y volver días después.
+      // Reapertura: de RSP regresa a revisión/codificación (de Entregado no: es parte del ciclo antes de que el cliente
+      // lo dé por bueno). Se compara con la última vez que apareció, porque un caso en RSP puede salir del standup y volver días después.
       for (const [tt, it] of mHoy) {
         let ult = null;
         for (const p of previos) { const x = bloqueHoy(p).items.find(i => i.tt === tt); if (x) ult = { it: x, dia: p.dia }; }
-        if (!ult || esCierre(ult.it.estatus) || rango(ult.it.estatus) !== 4 || iniciaronPruebas(historial(tt))) continue;
+        if (!ult || esCierre(ult.it.estatus) || !esRsp(ult.it.estatus) || iniciaronPruebas(historial(tt))) continue;
         const r1 = rango(it.estatus);
         if (r1 < 1 || r1 > 2) continue;
         if (eventos.some(e => e.tt === tt && e.tipo === 'REABIERTO' && e.dia >= ult.dia)) continue; // ya registrada
         h.push({ regla: 'retroceso', tt, detalle: `${tt} pasó de "${ult.it.estatus}" (${dmy(ult.dia)}) a "${it.estatus}" y no hay mensaje REABIERTO en el canal.` });
       }
-      // Cerrado (CEC, cancelado, LDP) que reaparece
-      for (const p of previos) for (const b of p.bloques) for (const it of b.items)
-        if (it.tt && esCierre(it.estatus) && mHoy.has(it.tt) && rango(mHoy.get(it.tt).estatus) < 5)
-          h.push({ regla: 'retroceso', tt: it.tt, detalle: `${it.tt} se reportó "${it.estatus}" el ${dmy(p.dia)} y vuelve a aparecer hoy ("${mHoy.get(it.tt).estatus}").` +
-            (esLdp(it.estatus) ? ' Después de la LDP el caso no se reabre: el problema nuevo va en otro TT (con ORIGEN si lo causó este).' : '') });
+      // Cerrado (CEC, cancelado, LDP) que reaparece. CEC o cancelado que regresa a trabajo es reapertura (lleva REABIERTO);
+      // LDP no se reabre. Un cancelado ya no aparece en el siguiente standup, aunque sea con otro cierre (p. ej. CEC).
+      const avisados = new Set();
+      for (const p of previos) for (const b of p.bloques) for (const it of b.items) {
+        if (!it.tt || !esCierre(it.estatus) || !mHoy.has(it.tt) || avisados.has(it.tt)) continue;
+        const hoyEst = mHoy.get(it.tt).estatus;
+        const cancelado = RX_CANCELADO.test(sinAcentos(it.estatus));
+        let detalle = null;
+        if (esLdp(it.estatus)) {
+          if (!esLdp(hoyEst)) detalle = `${it.tt} se reportó "${it.estatus}" el ${dmy(p.dia)} y vuelve a aparecer hoy ("${hoyEst}"). Después de la LDP el caso no se reabre: el problema nuevo va en otro TT (con ORIGEN si lo causó este).`;
+        } else if (rango(hoyEst) < 5) {
+          if (!eventos.some(e => e.tt === it.tt && e.tipo === 'REABIERTO' && e.dia >= p.dia))
+            detalle = `${it.tt} se reportó "${it.estatus}" el ${dmy(p.dia)} y vuelve a aparecer hoy ("${hoyEst}") sin mensaje REABIERTO en el canal.`;
+        } else if (cancelado && !RX_CANCELADO.test(sinAcentos(hoyEst)))
+          detalle = `${it.tt} se reportó "${it.estatus}" el ${dmy(p.dia)} y hoy aparece con "${hoyEst}". Un cancelado ya no aparece en el siguiente standup; si iba a cerrarse con otro estatus, se anota ese directamente.`;
+        if (detalle) { avisados.add(it.tt); h.push({ regla: 'retroceso', tt: it.tt, detalle }); }
+      }
     }
 
     // IDs, duplicados y errores de dedo en el standup de hoy
@@ -285,11 +298,11 @@ try {
           !(ant && bloqueHoy(ant).items.some(x => !x.tt && llaveSinTt(x.linea) === llaveSinTt(it.linea))))
           h.push({ regla: 'id', detalle: `"${it.linea}": trabajo sin número de caso.` });
         for (const e of erroresDedo(it.estatus)) h.push({ regla: 'ortografia', tt: it.tt, detalle: `Posible error de dedo ${e} en "${it.linea}".` });
-        // REABIERTO aplica a lo que ya estuvo Entregado o en RSP (si ya se marcó retroceso, no se repite)
-        const tuvoEntrega = it.tt && previos.some(p => bloqueHoy(p).items.some(x => x.tt === it.tt && !esCierre(x.estatus) && rango(x.estatus) === 4));
-        if (tuvoEntrega && !iniciaronPruebas(historial(it.tt)) && !h.some(x => x.regla === 'retroceso' && x.tt === it.tt) &&
+        // REABIERTO aplica a lo que ya estuvo en RSP (si ya se marcó retroceso, no se repite)
+        const tuvoRsp = it.tt && previos.some(p => bloqueHoy(p).items.some(x => x.tt === it.tt && !esCierre(x.estatus) && esRsp(x.estatus)));
+        if (tuvoRsp && !iniciaronPruebas(historial(it.tt)) && !h.some(x => x.regla === 'retroceso' && x.tt === it.tt) &&
           /reabr|regres[oó]|volvi[oó] a|otra vez|de nuevo/i.test(it.estatus) && !eventos.some(e => e.tt === it.tt && /REABIERTO|ORIGEN/.test(e.tipo)))
-          h.push({ regla: 'evento', tt: it.tt, detalle: `${it.tt} estuvo Entregado o en RSP, hoy dice "${it.estatus}" y no hay mensaje REABIERTO u ORIGEN en el canal.` });
+          h.push({ regla: 'evento', tt: it.tt, detalle: `${it.tt} estuvo en RSP, hoy dice "${it.estatus}" y no hay mensaje REABIERTO u ORIGEN en el canal.` });
         if (it.tt && esLdp(it.estatus) && !eventos.some(e => e.tt === it.tt && /LDP|LIBERADO/.test(e.tipo)))
           h.push({ regla: 'evento', tt: it.tt, detalle: `${it.tt} dice "${it.estatus}" y no hay mensaje LDP en el canal.` });
       }
