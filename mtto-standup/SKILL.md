@@ -65,7 +65,8 @@ con líneas `TT#####: estatus` que indican cómo queda cada caso al cierre del d
   y las pruebas previas a liberar la versión. El caso puede salir del standup y vuelve a seguimiento cuando entra a integración y pruebas con el tester.
   **LDP** = el tester mandó el correo de liberación de pruebas (cambios, mejoras y fallos): ese día el caso aparece como `TT#####: LDP`
   y se publica el evento `LDP`. "En espera de LDP" no es cierre.
-- **Reapertura** = el caso pasa de Entregado o RSP a revisión (la solución no funcionó). **Una vez iniciadas las pruebas no hay retroceso
+- **Reapertura** (desde el 16/10/2026) = el caso pasa de RSP, CEC o Cancelado a revisión o desarrollo; lleva REABIERTO.
+  Entregado que regresa a revisión **no** es reapertura (es parte del ciclo antes de que el cliente lo dé por bueno). **Una vez iniciadas las pruebas no hay retroceso
   ni reapertura**: lo que encuentre el tester se corrige en el mismo TT hasta la LDP. Después de la LDP tampoco se reabre:
   un problema nuevo va en otro TT, con ORIGEN si lo causó ese caso.
 - El script da por iniciadas las pruebas cuando el caso menciona SDP, al tester o "en espera de LDP", o cuando después de RSP
@@ -76,7 +77,8 @@ con líneas `TT#####: estatus` que indican cómo queda cada caso al cierre del d
 
 - **Cancelado** es estatus de cierre: se acepta como `TT#####: Cancelado` o como la línea `CANCELADO TT##### | tipo | cliente | dd/mm/aaaa`
   dentro del standup (no es evento del canal). Con eso el caso sale del seguimiento: no se marca `desaparece` ni `estancados`,
-  tampoco si antes traía CEC, y si vuelve a aparecer con otro estatus se marca `retroceso` (igual que CEC y LDP).
+  tampoco si antes traía CEC. Desde el 16/10/2026 se puede anotar en cuanto se decide cancelar, siempre que el caso ya no aparezca
+  en el siguiente standup: si reaparece con otro estatus de cierre (p. ej. CEC) se marca `retroceso`, y si regresa a trabajo es reapertura (lleva REABIERTO).
 
 Vocabulario: RSP (Revisión SCRUM Pendiente: el cliente dio por bueno), LDP (liberado de pruebas por el tester), CEC (a cerrar), Cancelado (sale del seguimiento), Entregado / en espera de respuesta, Pausa / standby / en espera de logs, "x2", "x3"… = veces que se repite la acción.
 Eventos aparte (mensaje propio, ver `C:\Users\jorge\.claude\skills\rcalidad\GUIA_CANAL.md`): `LDP` (sustituye a `LIBERADO` desde el 09/10/2026), `REABIERTO`, `ORIGEN`.
@@ -141,10 +143,10 @@ Devuelve por colaborador `standupDeHoy`, `hora`, `hallazgos[]` (`regla`, `tt`, `
 | `desaparece` | Un TT de su "Hoy" anterior ya no aparece y su último estatus no era de cierre (RSP, LDP, CEC, cancelado) |
 | `copiado` | La sección de seguimiento es idéntica a la del standup anterior (ningún estatus ni contador cambió) |
 | `contador` | Un contador baja, salta más de lo que permiten los días transcurridos (uno por día hábil, contando los días sin standup) o desaparece con el mismo estatus |
-| `retroceso` | Un TT pasa de Entregado o RSP (en su última aparición, aunque haya salido del standup) a revisando/codificando sin mensaje REABIERTO y sin haber iniciado pruebas, o un TT con CEC, LDP o cancelado reaparece con otro estatus ("probablemente se cancele" no cuenta como cancelado). Si traía LDP, indica que no se reabre: va en otro TT con ORIGEN |
+| `retroceso` | Un TT pasa de RSP (en su última aparición, aunque haya salido del standup) a revisando/codificando sin mensaje REABIERTO y sin haber iniciado pruebas; un TT con CEC o cancelado regresa a trabajo sin mensaje REABIERTO; un cancelado reaparece con otro cierre (p. ej. CEC); o un TT con LDP reaparece con otro estatus, y se indica que no se reabre: va en otro TT con ORIGEN. Entregado → revisión no se marca |
 | `id` | ID sin prefijo TT, con menos de 5 dígitos, repetido en el bloque, o trabajo nuevo sin número de caso (línea que empieza con Fallo, Cambio, Mejora o Apoyo, o que dice "pendiente de caso") |
 | `ortografia` | Posible error de dedo en palabras del vocabulario de estatus |
-| `evento` | Un TT que estuvo Entregado o en RSP dice "otra vez", "regresó"… y no existe el mensaje REABIERTO/ORIGEN, o un TT tiene estatus LDP en el standup y no existe su mensaje aparte `LDP TT##### | ...` (o un LIBERADO anterior), que es el que lee /rcalidad |
+| `evento` | Un TT que estuvo en RSP dice "otra vez", "regresó"… y no existe el mensaje REABIERTO/ORIGEN, o un TT tiene estatus LDP en el standup y no existe su mensaje aparte `LDP TT##### | ...` (o un LIBERADO anterior), que es el que lee /rcalidad |
 | `sin-caso` | Cualquier línea sin TT que lleva 5 o más días hábiles en el standup (se identifica sin lo que va entre paréntesis). No aplica a actividades que no son casos: curso, capacitación, SCRUM, informes, reuniones |
 | `estancados` | Mismo estatus por 5 o más días hábiles (solo para Jorge). Un cambio de formato no reinicia la cuenta ("pruebas" → "Pausa: pruebas") |
 
