@@ -14,18 +14,36 @@ Los `HorasCambioTT#####.xlsx` los genera `/comisiones-internos`. El usuario pued
 - **Títulos de los cambios:** `C:\Users\jorge\Dropbox\MTTO\ReportesMTTO\CambiosProceso.xlsx` (columna A = ID, columna B = Descripción).
 - El script corre en PowerShell 5.1, usa Excel y Outlook por COM y está guardado en UTF-8 con BOM. Si lo editas, consérvalo con BOM; sin él, los acentos salen corruptos.
 
-## Paso 1 — Generar
+## Paso 1 — Redactar la descripción breve de cada cambio
 
-Para todos los cambios del mes:
+Es una frase corta que resume qué hace el cambio y va al final del primer párrafo. Por ejemplo: `son diversas mejoras solicitadas al monitor de servicios para mostrar más información solicitadas por soporte y algunos distribuidores`. Empieza en minúscula, no lleva punto final y no repite el título.
+
+Sigue este orden de fuentes:
+
+1. **Archivo HorasCambio de cada TT.** Revisa el título y las actividades de cada uno:
+   ```powershell
+   & 'C:\Users\jorge\.claude\skills\comisiones-correos\scripts\cambios.ps1'          # o -TT TT105878,...
+   ```
+2. **Azure DevOps.** Úsalo solo si las actividades no alcanzan (por ejemplo, si solo dicen "Codificación"). Muestra ramas, commits y archivos de los TT indicados. Usa el token de /mtto-revpr (`AZURE_DEVOPS_EXT_PAT`).
+   ```powershell
+   & 'C:\Users\jorge\.claude\skills\comisiones-correos\scripts\cambios.ps1' -TT TT105876 -Ado
+   ```
+3. **Si tampoco hay rama ni PR**, redacta una descripción verosímil con lo que tengas (título, colaborador, actividades). Jorge la revisa en el borrador antes de enviar. En el chat, indica qué descripciones son deducidas.
+
+No pidas aprobación de las descripciones antes de generar los borradores. Muéstralas en la entrega.
+
+## Paso 2 — Generar
+
+Pasa las descripciones con `-Desc`. Para todos los cambios del mes:
 
 ```powershell
-& 'C:\Users\jorge\.claude\skills\comisiones-correos\scripts\correos.ps1'
+& 'C:\Users\jorge\.claude\skills\comisiones-correos\scripts\correos.ps1' -Desc @{ TT105878 = 'agrega ...'; TT102841 = 'permite ...' }
 ```
 
 Si el usuario nombra uno o varios TT (por ejemplo, los que editó), pásalos con `-TT`:
 
 ```powershell
-& 'C:\Users\jorge\.claude\skills\comisiones-correos\scripts\correos.ps1' -TT TT105878,TT102841
+& 'C:\Users\jorge\.claude\skills\comisiones-correos\scripts\correos.ps1' -TT TT105878,TT102841 -Desc @{ ... }
 ```
 
 Usa la herramienta PowerShell con un timeout amplio (unos 120000 ms).
@@ -48,7 +66,7 @@ Tomada del que Jorge envía cada mes:
 - **Cuerpo:**
 
 ```
-Ingeniero buen día, solicito de su autorización para el pago de comisiones del cambio interno <TÍTULO>, realizado por <Colaborador>.
+Ingeniero buen día, solicito de su autorización para el pago de comisiones del cambio interno <TÍTULO>, realizado por <Colaborador>, <descripción breve>.
 
 
 Jorge Armando Gálvez Martínez
@@ -60,8 +78,8 @@ En el cuerpo:
 - `<TÍTULO>` es el título de CambiosProceso sin espacios alrededor de los guiones, por ejemplo `TT105878-IMAGENSOFT-CAMBIO-CARTAPORTE UBICACION Y MERCANCIA`.
 - `<Colaborador>` es el nombre de pila, es decir, el nombre de la carpeta en `CambiosInternos`.
 
-## Paso 2 — Entregar (en el chat, breve)
+## Paso 3 — Entregar (en el chat, breve)
 
-1. Los TT procesados, con la fecha de guardado del Excel adjunto.
+1. Los TT procesados, con la fecha de guardado del Excel adjunto y la descripción usada (y de qué fuente salió).
 2. Cuáles borradores se reemplazaron.
 3. Que los borradores están en Outlook, listos para revisar y enviar.
