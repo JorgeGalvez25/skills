@@ -49,6 +49,8 @@ try {
   for ($cp = 18; $cp -le 22; $cp++) {
     if ([double]$v[36,$cp] -eq 0) { continue }
     $persona = [string]$v[6,$cp]; $no = $v[5,$cp]
+    # Jorge no recibe archivo; su parte se descuenta del total a cuadrar
+    if ($persona -eq 'Jorge Gálvez') { $total -= [double]$v[36,$cp]; continue }
     $dest = "$salida\Mantenimiento_Comisiones_$($nombre)_$($anio)_$($persona -replace ' ', '_').xlsx"
     if ((Test-Path $dest) -and -not $Sobrescribir) { throw "Ya existe $dest" }
 
@@ -83,5 +85,5 @@ try {
     "{0,-18} {1,12:N2}  {2}" -f $persona, $tot, (Split-Path $dest -Leaf)
   }
   ''
-  'Suma: {0:N2}   Total del concentrado: {1:N2}' -f $suma, $total
+  'Suma: {0:N2}   Total del concentrado sin Jorge Gálvez: {1:N2}' -f $suma, $total
 } finally { $xl.Quit(); [void][Runtime.InteropServices.Marshal]::ReleaseComObject($xl) }

@@ -19,7 +19,7 @@ Los archivos los crea **siempre** `scripts/colaboradores.ps1` a partir de la pla
 
 | Concepto | Valor |
 |---|---|
-| Quién recibe archivo | Cada beneficiario con total mayor a cero (columnas R:V del concentrado) |
+| Quién recibe archivo | Cada beneficiario con total mayor a cero (columnas R:V del concentrado), excepto Jorge Gálvez |
 | Nombre y número | Del concentrado: nombre en la fila 6 y número en la fila 5 de R:V |
 | Filas | Solo las de externos (7 a 9) e internos (15 a 28) donde la persona tiene importe; la de Mejoras va primero en internos |
 | Columnas B:I | Los valores calculados del concentrado, sin fórmulas |
@@ -40,4 +40,4 @@ Si falla porque el archivo está abierto, pide al usuario que lo cierre y vuelve
 ## Paso 2 — Entregar (en el chat, breve)
 
 1. Una tabla: beneficiario, total y archivo.
-2. La suma de los archivos contra el total del concentrado. Si no cuadran, dilo.
+2. La suma de los archivos contra el total del concentrado sin la parte de Jorge. Si no cuadran, dilo.
