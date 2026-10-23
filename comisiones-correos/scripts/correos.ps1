@@ -1,4 +1,4 @@
-﻿param([string]$Mes = (Get-Location).Path, [string[]]$TT)
+﻿param([string]$Mes = (Get-Location).Path, [string[]]$TT, [hashtable]$Desc = @{})
 $ErrorActionPreference = 'Stop'
 $para = 'jorgeorduno@imagensoft.com.mx'
 $procesos = 'C:\Users\jorge\Dropbox\MTTO\ReportesMTTO\CambiosProceso.xlsx'
@@ -29,7 +29,7 @@ foreach ($x in $archivos) {
   $tt = $x.BaseName -replace 'HorasCambio', ''
   if (-not $titulos[$tt]) { throw "$tt no está en CambiosProceso.xlsx" }
   $asunto = "Autorización comisiones cambio interno $tt"
-  $solicitud = "Ingeniero buen día, solicito de su autorización para el pago de comisiones del cambio interno $($titulos[$tt]), realizado por $($x.Directory.Name)."
+  $solicitud = "Ingeniero buen día, solicito de su autorización para el pago de comisiones del cambio interno $($titulos[$tt]), realizado por $($x.Directory.Name)$(if ($Desc[$tt]) { ', ' + $Desc[$tt].TrimEnd('.') })."
 
   # Borrador en Outlook con el Excel actual adjunto (no se envía); reemplaza el borrador previo del mismo TT
   $previos = @($borradores.Items | Where-Object { $_.Subject -eq $asunto })
