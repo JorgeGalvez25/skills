@@ -43,6 +43,7 @@ Equipo: Martín Reyes, Miguel Armenta, Susana Gámez, Saulo López.
 
 Vocabulario de estatus:
 - **RSP** (Revisión SCRUM Pendiente): el cliente dio por bueno el cambio o la corrección del fallo; falta integrarlo a MAIN y las pruebas previas a liberar la versión. Vuelve a seguimiento cuando entra a integración y pruebas con el tester.
+- **REVPR** (Revisión de PR): después de RSP, el desarrollador corrige el código por las observaciones al PR, con el mismo TT. Sigue abierto (no es cierre ni reapertura).
 - **LDP**: el tester terminó sus pruebas y mandó el correo de liberación de pruebas (cambios, mejoras y fallos). "En espera de LDP" sigue abierto.
 - **CEC**: se manda a cerrar.
 - **Cancelado** (`TT#####: Cancelado` o la línea `CANCELADO TT##### | ...`): ya no se le da seguimiento. "Probablemente se cancele" no cuenta.

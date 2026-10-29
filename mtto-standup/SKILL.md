@@ -69,6 +69,7 @@ Sin motivo, termina en el código (`TT##### - C - P`). Tipo: `C` = cambio o mejo
 | `ENT` | Entregado, en espera de respuesta | seguimiento |
 | `EST` | Preguntar estatus (correo a soporte) | seguimiento |
 | `RSP` | Revisión SCRUM Pendiente (ver abajo) | seguimiento |
+| `REVPR` | Corrección de código por observaciones de Jorge al PR de un caso que ya pasó por RSP (ver abajo) | seguimiento |
 | `ESPLDP` | Caso propio en pruebas con el tester, en espera de LDP | seguimiento |
 | `BUGPRU` | El tester reportó un bug en el caso (se corrige en el mismo TT) | seguimiento |
 | `PRU` | Caso de un compañero que se está probando como tester | seguimiento |
@@ -92,6 +93,11 @@ Sin motivo, termina en el código (`TT##### - C - P`). Tipo: `C` = cambio o mejo
   Entregado que regresa a revisión **no** es reapertura (es parte del ciclo antes de que el cliente lo dé por bueno). **Una vez iniciadas las pruebas no hay retroceso
   ni reapertura**: lo que encuentre el tester se corrige en el mismo TT hasta la LDP. Después de la LDP tampoco se reabre:
   un problema nuevo va en otro TT, con ORIGEN si lo causó ese caso.
+- Desde el **28/10/2026**: **REVPR** (Revisión de PR) = el desarrollador corrige el código por las observaciones que Jorge hizo al PR de un caso que ya pasó
+  por RSP. Se registra con el **mismo TT del caso** (`TT##### - F - REVPR: observaciones del PR`), no es retroceso ni reapertura (no lleva REABIERTO) y no es cierre:
+  al atender las observaciones, el caso aparece una última vez como `RSP` (p. ej. `RSP: observaciones del PR atendidas`) o sigue a pruebas (`ESPLDP`).
+  Si el caso nunca estuvo en RSP, el script marca `sin-rsp`. Antes del 28/10/2026 este trabajo aparecía como "corrección para liberación" (p. ej. TT98105 y
+  TT102632 de Miguel, 21–22/10/2026): no se trata como cambio de ID ni como trabajo sin cierre.
 - El script da por iniciadas las pruebas cuando el caso trae `ESPLDP`, `BUGPRU`, `PRU`, `ESPBUG` o `FINPRU`, menciona SDP, al tester o "en espera de LDP", o cuando después de RSP
   menciona pruebas, integración, MAIN o SCRUM. Desde ahí no marca `retroceso` ni sugiere REABIERTO.
 - Los casos atendidos y cerrados el mismo día también se anotan, con su estatus final.
@@ -104,7 +110,7 @@ Sin motivo, termina en el código (`TT##### - C - P`). Tipo: `C` = cambio o mejo
   `CAN` ya no se usa (con `INICIO_CODIGOS` se marca `formato`). Los cancelados anteriores (`TT#####: Cancelado` o la línea
   `CANCELADO TT##### | …`) se siguen leyendo como cierre en el historial: no se marca `desaparece` ni `estancados`.
 
-Vocabulario: RSP (Revisión SCRUM Pendiente: el cliente dio por bueno), LDP (liberado de pruebas por el tester), CEC (correo de cierre: cierre sin RSP, incluidos los cancelados), Cancelado (formato anterior al 21/10/2026, equivale a CEC), Entregado / en espera de respuesta, Pausa / standby / en espera de logs, "x2", "x3"… = veces que se repite la acción.
+Vocabulario: RSP (Revisión SCRUM Pendiente: el cliente dio por bueno), REVPR (corrección por observaciones a la revisión del PR, después de RSP), LDP (liberado de pruebas por el tester), CEC (correo de cierre: cierre sin RSP, incluidos los cancelados), Cancelado (formato anterior al 21/10/2026, equivale a CEC), Entregado / en espera de respuesta, Pausa / standby / en espera de logs, "x2", "x3"… = veces que se repite la acción.
 Eventos aparte (mensaje propio, ver `C:\Users\jorge\.claude\skills\rcalidad\GUIA_CANAL.md`): `LDP` (sustituye a `LIBERADO` desde el 09/10/2026), `REABIERTO`, `ORIGEN`.
 
 ## Paso 0 — Leer las respuestas a la retro anterior
@@ -167,11 +173,11 @@ Devuelve por colaborador `standupDeHoy`, `hora`, `hallazgos[]` (`regla`, `tt`, `
 | `estructura` | No hay casos en standby/seguimiento o (desde el 08/10/2026) todavía incluye "Ayer"/"Viernes" |
 | `desaparece` | Un TT de su "Hoy" anterior ya no aparece y su último estatus no era de cierre (RSP, LDP, CEC, cancelado), y no hay un TT nuevo que lo continúe |
 | `cambio-id` | Un TT desaparece sin cierre y hoy aparece uno nuevo (que no es `PRU`, `ESPBUG` ni `FINPRU`) del mismo tipo con dos o más palabras en común en el motivo, o el único TT nuevo cuando solo desapareció uno, sin la marca `(antes TT#####)` |
-| `sin-rsp` | Un caso propio entra a pruebas (`ESPLDP`, `BUGPRU`, SDP, "en espera de LDP") o a `LDP` desde `ENT`, `EST` o trabajo, sin haber estado en RSP. De RSP a LDP directo sí vale (SCRUM, pruebas y liberación el mismo día). Solo si el TT ya aparecía en la ventana leída: si es nuevo en la ventana, su RSP pudo ser anterior |
+| `sin-rsp` | Un caso propio entra a pruebas (`ESPLDP`, `BUGPRU`, SDP, "en espera de LDP"), a `REVPR` o a `LDP` desde `ENT`, `EST` o trabajo, sin haber estado en RSP. De RSP a LDP directo sí vale (SCRUM, pruebas y liberación el mismo día). Solo si el TT ya aparecía en la ventana leída: si es nuevo en la ventana, su RSP pudo ser anterior |
 | `formato` | Solo desde `INICIO_CODIGOS`: línea con TT sin código de la tabla, sin tipo o con `M` (las mejoras van con `C`), con `CAN` (va `CEC`), o `P` fuera de standby / otro código en standby. Siempre (sin esperar `INICIO_CODIGOS`): `LDP` puesto por quien probó el caso como tester (va `FINPRU`) |
 | `copiado` | La sección de seguimiento es idéntica a la del standup anterior (ningún estatus ni contador cambió) |
 | `contador` | Un contador baja, salta más de lo que permiten los días transcurridos (uno por día hábil, contando los días sin standup) o desaparece con el mismo estatus |
-| `retroceso` | Un TT pasa de RSP (en su última aparición, aunque haya salido del standup) a revisando/codificando/piloto (`R`, `AN`, `D`, `PIL`) sin mensaje REABIERTO y sin haber iniciado pruebas; un TT con CEC o cancelado regresa a trabajo sin mensaje REABIERTO; un CEC o cancelado reaparece en el siguiente standup con un cierre (CEC va solo el día en que se envía); o un TT con LDP reaparece con otro estatus, y se indica que no se reabre: va en otro TT con ORIGEN. Entregado → revisión no se marca |
+| `retroceso` | Un TT pasa de RSP (en su última aparición, aunque haya salido del standup) a revisando/codificando/piloto (`R`, `AN`, `D`, `PIL`) sin mensaje REABIERTO y sin haber iniciado pruebas; un TT con CEC o cancelado regresa a trabajo sin mensaje REABIERTO; un CEC o cancelado reaparece en el siguiente standup con un cierre (CEC va solo el día en que se envía); o un TT con LDP reaparece con otro estatus, y se indica que no se reabre: va en otro TT con ORIGEN. Entregado → revisión y RSP → `REVPR` no se marcan |
 | `id` | ID sin prefijo TT, con menos de 5 dígitos, repetido en el bloque, o trabajo nuevo sin número de caso (línea que empieza con Fallo, Cambio, Mejora o Apoyo, o que dice "pendiente de caso") |
 | `ortografia` | Posible error de dedo en palabras del vocabulario de estatus |
 | `evento` | Un TT que estuvo en RSP dice "otra vez", "regresó"… y no existe el mensaje REABIERTO/ORIGEN, o un TT tiene estatus LDP en el standup y no existe su mensaje aparte `LDP TT##### | ...` (o un LIBERADO anterior), que es el que lee /rcalidad. No se le pide a quien lo probó como tester (`PRU`, `ESPBUG`, `FINPRU`): lo publica el desarrollador responsable |
@@ -194,6 +200,8 @@ El script es estricto a propósito. Antes de redactar, descarta o matiza:
   la aclaración con `regla: "cambio-id"`, `tt` (el ID anterior) y `nuevo` (ver "Aclaraciones"). Si lo ves leyendo los mensajes aunque el script no lo marcó
   (desaparece un TT y aparece otro con otras palabras), conviértelo también en pregunta en lugar de `desaparece`.
 - `formato`: los primeros días después de `INICIO_CODIGOS`, agrúpalo en una sola viñeta de recordatorio amable con la tabla de códigos, no una por línea.
+- Un caso que después de RSP vuelve con "corrección para liberación", "observaciones del PR" o similar es `REVPR`: no es retroceso ni cambio de ID.
+  Si no trae el código, sugiere `TT##### - C/F - REVPR: <motivo>` en lugar de pedir REABIERTO.
 - `BUGPRU` que pasa a `R`, `AN` o `D`: no es retroceso (las pruebas ya iniciaron); sugiere mantener `BUGPRU` hasta que lo devuelva al tester.
 - `ttCompartidos`: puede ser trabajo en conjunto; solo infórmalo a Jorge. Si trae `tester`, es el caso que ese colaborador prueba (`PRU`, `ESPBUG` o `FINPRU`): es normal y no se menciona.
 - `faltantes`: no se redacta nada por ellos. Si hubo hueco y hay hallazgos de continuidad, redacta el punto mencionando el hueco como contexto
