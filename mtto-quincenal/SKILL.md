@@ -19,7 +19,7 @@ Columnas (desde `13-10`): **Desarrollador | Caso | Estatus | Observaciones | Fec
 ## Reglas de Jorge (aplican siempre, salvo que pida otra cosa)
 
 1. **Solo trabajo vigente.** Un caso que en el periodo quedó con estatus de cierre (CEC, RSP, LDP, LIBERADO, Cancelado/CANCELADO, Cerrado) **no se incluye**,
-   aunque estuviera en la hoja anterior. Si después de RSP volvió al standup (integración/pruebas con el tester), sí se incluye.
+   aunque estuviera en la hoja anterior. Si después de RSP volvió al standup (REVPR por observaciones al PR, integración/pruebas con el tester), sí se incluye.
 2. **Fecha cierre vacía** salvo que haya información para determinarla (Jorge la da o pasa una captura del tablero con la fecha). No se arrastran las fechas de la hoja anterior ni se calculan.
 3. **Bloque de Jorge**: no se genera contenido. Se dejan 5 filas vacías con "Jorge" en Desarrollador y su color (lila) para que él capture (`captura` en la spec).
 4. **Casos de la hoja anterior sin información en #mtto** (no se pueden ligar a ningún TT ni mención del periodo): se incluyen igual, con el texto de Caso y Observaciones de la hoja anterior,
