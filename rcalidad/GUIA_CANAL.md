@@ -22,9 +22,11 @@ Sin títulos de día ("Ayer", "Viernes", "Hoy"): directo con las secciones **sta
 
 - Todo trabajo lleva su número de caso: `TT#####`, con el prefijo y 5 o más dígitos.
 - Actualicen el estatus de cada caso todos los días. Si se repite la misma acción, usen el contador (x2, x3…).
-- Un caso solo sale del standup después de aparecer **una última vez con su estatus de cierre**: RSP, LDP, CEC o Cancelado. Si deja de aparecer sin ese estatus, no sabemos qué pasó con él.
+- Un caso solo sale del standup después de aparecer **una última vez con su estatus de cierre**: RSP, LDP, CEC o Cancelado (o REVPR, ver abajo). Si deja de aparecer sin ese estatus, no sabemos qué pasó con él.
+- Tipo: `C` cambio o mejora, `F` fallo, `AP` apoyo a soporte. Un `AP` solo usa P → R → ENT → EST → CEC: no pasa por RSP ni por pruebas y nunca lleva eventos.
+- Una urgencia que se atiende antes de que exista el TT va como `TTsinid1`, `TTsinid2`…; el día que recibe su TT, la línea nueva termina con `(antes sin ID)`.
 - **RSP** (Revisión SCRUM Pendiente): el cliente dio por bueno el cambio o la corrección del fallo; falta integrarlo a MAIN y las pruebas previas a liberar la versión. El caso puede salir del standup y regresa a seguimiento cuando entra a integración y pruebas con el tester; indíquenlo en el estatus (p. ej. `TT#####: SDP enviada`, `TT#####: En pruebas con el tester`).
-- **REVPR** (Revisión de PR): corrección de código por las observaciones al PR de un caso que ya pasó por RSP. Se anota con el mismo TT (`TT##### - F - REVPR: observaciones del PR`); no es reapertura y no lleva REABIERTO. Al atender las observaciones, el caso aparece una última vez como RSP o sigue a pruebas.
+- **REVPR** (Revisión de PR): corrección de código por las observaciones al PR de un caso que ya pasó por RSP. Se anota con el mismo TT (`TT##### - F - REVPR: observaciones del PR`); no es reapertura y no lleva REABIERTO. Al atender las observaciones, el caso sale del standup sin repetir RSP y vuelve cuando entra a pruebas (ESPLDP).
 - **Una vez iniciadas las pruebas no hay retroceso ni reapertura:** lo que encuentre el tester se corrige en el mismo TT hasta la LDP.
 - **LDP**: el tester terminó sus pruebas y mandó el correo de liberación de pruebas (cambios, mejoras y fallos). Ese día el caso aparece como `TT#####: LDP` y además se publica el evento LDP (abajo).
 - Los casos que llegan y se resuelven el mismo día también se anotan, con su estatus final.
