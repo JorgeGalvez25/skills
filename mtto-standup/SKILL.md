@@ -73,7 +73,7 @@ En Slack el código `D` va pegado al guion (`TT##### - C -D: motivo`) porque ` D
 | `R` / `AN` / `D` / `PIL` | Revisando / Analizando / Desarrollo / Piloto | seguimiento |
 | `ENT` | Entregado, en espera de respuesta | seguimiento |
 | `EST` | Preguntar estatus (correo a soporte) | seguimiento |
-| `RSP` | Revisión SCRUM Pendiente (ver abajo) | seguimiento |
+| `RSP` | Revisión SCRUM Pendiente (ver abajo); el motivo termina con `Fecha Entrega dd/mm/aaaa` | seguimiento |
 | `REVPR` | Corrección de código por observaciones de Jorge al PR de un caso que ya pasó por RSP (ver abajo) | seguimiento |
 | `ESPLDP` | Caso propio en pruebas con el tester, en espera de LDP | seguimiento |
 | `BUGPRU` | El tester reportó un bug en el caso (se corrige en el mismo TT) | seguimiento |
@@ -185,7 +185,7 @@ Devuelve por colaborador `standupDeHoy`, `hora`, `hallazgos[]` (`regla`, `tt`, `
 | `desaparece` | Un TT de su "Hoy" anterior ya no aparece y su último estatus no era de cierre (RSP, LDP, CEC, cancelado) ni `REVPR`, y no hay un TT nuevo que lo continúe |
 | `cambio-id` | Un TT (o `TTsinidN`) desaparece sin cierre y hoy aparece uno nuevo (que no es `PRU`, `ESPBUG` ni `FINPRU`) del mismo tipo con dos o más palabras en común en el motivo, o el único TT nuevo cuando solo desapareció uno, sin la marca `(antes TT#####)` o `(antes sin ID)` |
 | `sin-rsp` | Un caso propio entra a pruebas (`ESPLDP`, `BUGPRU`, SDP, "en espera de LDP"), a `REVPR` o a `LDP` desde `ENT`, `EST` o trabajo, sin haber estado en RSP. De RSP a LDP directo sí vale (SCRUM, pruebas y liberación el mismo día). Solo si el TT ya aparecía en la ventana leída: si es nuevo en la ventana, su RSP pudo ser anterior |
-| `formato` | Solo desde `INICIO_CODIGOS`: línea con TT sin código de la tabla, sin tipo o con `M` (las mejoras van con `C`), con `CAN` (va `CEC`), o `P` fuera de standby / otro código en standby. Siempre (sin esperar `INICIO_CODIGOS`): `LDP` puesto por quien probó el caso como tester (va `FINPRU`), un `F` en `AN`, `D` o `PIL`, un `AP` con un código fuera de `P`, `R`, `ENT`, `EST`, `CEC`, y `RSP` después de `REVPR` |
+| `formato` | Solo desde `INICIO_CODIGOS`: línea con TT sin código de la tabla, sin tipo o con `M` (las mejoras van con `C`), con `CAN` (va `CEC`), o `P` fuera de standby / otro código en standby. Siempre (sin esperar `INICIO_CODIGOS`): `LDP` puesto por quien probó el caso como tester (va `FINPRU`), un `F` en `AN`, `D` o `PIL`, un `AP` con un código fuera de `P`, `R`, `ENT`, `EST`, `CEC`, `RSP` sin `Fecha Entrega dd/mm/aaaa` al final del motivo y `RSP` después de `REVPR` |
 | `copiado` | La sección de seguimiento es idéntica a la del standup anterior (ningún estatus ni contador cambió) |
 | `contador` | Un contador baja, salta más de lo que permiten los días transcurridos (uno por día hábil, contando los días sin standup) o desaparece con el mismo estatus |
 | `retroceso` | Un TT pasa de RSP (en su última aparición, aunque haya salido del standup) a revisando/codificando/piloto (`R`, `AN`, `D`, `PIL`) sin mensaje REABIERTO y sin haber iniciado pruebas; un TT con CEC o cancelado regresa a trabajo sin mensaje REABIERTO; un CEC o cancelado reaparece en el siguiente standup con un cierre (CEC va solo el día en que se envía); o un TT con LDP reaparece con otro estatus, y se indica que no se reabre: va en otro TT con ORIGEN. Entregado → revisión, RSP → `REVPR` y cualquier regreso de un `AP` no se marcan |
