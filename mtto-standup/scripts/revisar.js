@@ -379,6 +379,9 @@ try {
           h.push({ regla: 'formato', tt: it.tt, detalle: `"${it.linea}": un fallo (F) solo usa R como estado de trabajo; AN, D y PIL son para cambios (C).` });
         if (b === bHoy && it.codigo && it.tipo === 'AP' && !['P', 'R', 'ENT', 'EST', 'CEC'].includes(it.codigo))
           h.push({ regla: 'formato', tt: it.tt, detalle: `"${it.linea}": un apoyo a soporte (AP) solo usa P, R, ENT, EST y CEC; no pasa por RSP ni por pruebas.` });
+        // RSP termina el motivo con la fecha en que el cliente lo dio por bueno
+        if (b === bHoy && it.codigo === 'RSP' && it.tipo !== 'AP' && !/fecha\s+(?:de\s+)?entrega:?\s*\d{1,2}\/\d{1,2}\/\d{2,4}/i.test(it.linea))
+          h.push({ regla: 'formato', tt: it.tt, detalle: `"${it.linea}": el RSP termina el motivo con "Fecha Entrega dd/mm/aaaa".` });
         // Al atender las observaciones del PR el caso sale del standup, sin otro RSP
         if (b === bHoy && it.tt && esRsp(it.estatus) && ant && bloqueHoy(ant).items.some(x => x.tt === it.tt && esRevpr(x.estatus)))
           h.push({ regla: 'formato', tt: it.tt, detalle: `"${it.linea}": después de REVPR no se repite RSP; al atender las observaciones del PR el caso solo sale del standup (después puede volver en ESPLDP).` });
