@@ -1,6 +1,6 @@
 # Prompt de los subagentes revisores
 
-Copiar el bloque tal cual en cada `Agent` (subagent_type `general-purpose`, `run_in_background: true`), sustituyendo `<SALIDA>`, `<CARPETA>`, `<VERSION>`, `<FECHA>` y la sección "Tu asignación". Lanzar todos en el mismo mensaje.
+Copiar el bloque tal cual en cada `Agent` (subagent_type `general-purpose`, `model: opus`, `run_in_background: true`), sustituyendo `<SALIDA>`, `<CARPETA>`, `<VERSION>`, `<FECHA>` y la sección "Tu asignación". Lanzar todos en el mismo mensaje.
 
 ---
 
