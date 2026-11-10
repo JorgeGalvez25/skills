@@ -1,5 +1,6 @@
 ---
 name: mtto-aca
+model: sonnet
 description: Asigna y registra una solicitud de cambio nueva de Mantenimiento a partir de la captura del caso en VTiger (Id Caso TT#####, Título, Asignado a). Agrega el cambio a CambiosProceso.xlsm con los valores por omisión y deja en Outlook el borrador "TT##### ACA" para el colaborador asignado, con copia a Diana y la captura incrustada. Usar cuando digan "/mtto-aca", "asigna este cambio", "registra el cambio", "haz el ACA", "asignación de actividad de cambio" o adjunten la captura de un caso de VTiger de clase Proyectos para asignarlo.
 argument-hint: "[captura del caso de VTiger]"
 ---

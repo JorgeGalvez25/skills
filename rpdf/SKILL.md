@@ -1,5 +1,6 @@
 ---
 name: rpdf
+model: sonnet
 description: Genera la versión PDF de los reportes mensuales de indicadores del Departamento de Mantenimiento (todos los .xlsx y .docx de la carpeta de trabajo actual) en la subcarpeta PDF, que crea si no existe, con el tamaño de página adecuado y sin texto recortado. Se ejecuta desde la carpeta del mes y no pide argumentos. Usar cuando digan "/rpdf", "genera los PDF de los reportes", "pasa a PDF los reportes" o "versión PDF de los reportes".
 ---
 

@@ -1,5 +1,6 @@
 ---
 name: mtto-fechas
+model: sonnet
 description: 'Revisa el canal de Slack #mtto y compara los standups diarios del equipo de mantenimiento con una captura del tablero de tickets (columnas PROCESO / ENTREGADO con TT#####, responsable y fecha) para decir a qué tickets hay que moverles la fecha, cuáles revisar/cerrar y cuáles van bien. Usar cuando digan "/mtto-fechas", adjunten la imagen del tablero, o pregunten "a cuál le muevo la fecha".'
 ---
 

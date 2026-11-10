@@ -1,5 +1,6 @@
 ---
 name: comisiones-correos
+model: sonnet
 description: Prepara los correos de autorización de comisiones de los cambios internos de Mantenimiento. Se ejecuta desde la carpeta del mes (C:\Users\jorge\Dropbox\MTTO\Reportes Mensuales\Comisiones\<año>\YYYYMM-Mes), toma los HorasCambioTT#####.xlsx de CambiosInternos\<colaborador> tal como estén guardados (incluso si el usuario los editó) y deja un borrador en Outlook con ese Excel adjunto. Usar cuando digan "/comisiones-correos", "genera los correos de autorización", "prepara los borradores de comisiones", "ya edité el archivo, haz el correo" o "vuelve a adjuntar el Excel".
 argument-hint: "[TT##### ...]"
 ---

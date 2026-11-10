@@ -1,5 +1,6 @@
 ---
 name: comisiones-colaboradores
+model: sonnet
 description: Genera el Excel de comisiones de cada colaborador (Mantenimiento_Comisiones_<Mes>_<año>_<Nombre_Apellido>.xlsx en PorBeneficiario), con importes fijos en lugar de las fórmulas de porcentaje y solo las filas que le tocan a cada quien. Se ejecuta desde la carpeta del mes (C:\Users\jorge\Dropbox\MTTO\Reportes Mensuales\Comisiones\<año>\YYYYMM-Mes) y toma los valores del concentrado del mes. Si los Excel ya existen, deja en Outlook un borrador por colaborador con su archivo adjunto. Usar cuando digan "/comisiones-colaboradores", "genera los archivos por beneficiario", "el excel de cada colaborador", "reportes por beneficiario", "comisiones sin fórmulas de cada uno" o "manda el reporte de comisiones a cada colaborador".
 ---
 

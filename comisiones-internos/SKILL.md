@@ -1,5 +1,6 @@
 ---
 name: comisiones-internos
+model: sonnet
 description: Genera los reportes mensuales de comisiones de los cambios internos de Mantenimiento. Se ejecuta desde la carpeta del mes (C:\Users\jorge\Dropbox\MTTO\Reportes Mensuales\Comisiones\<año>\YYYYMM-Mes), lee los "Reporte Hrs Caso*.xls" de CambiosInternos\<colaborador>, crea un HorasCambioTT#####.xlsx por cambio. Usar cuando digan "/comisiones-internos", "genera las comisiones del mes", "reportes de comisiones de los colaboradores" o "comisiones de cambios internos". Los correos de autorización los hace /comisiones-correos.
 ---
 

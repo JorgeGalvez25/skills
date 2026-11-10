@@ -1,5 +1,6 @@
 ---
 name: rfallos
+model: sonnet
 description: Genera la relación mensual de fallos atendidos del Departamento de Mantenimiento (indicador 1, "Cumplimiento de atención de fallos según criticidad") para cualquier mes. Recibe el mes como YYYYMM (año de 4 dígitos + mes de 2 dígitos, p. ej. 202610 o 202701), lee la exportación de VTiger de la carpeta de ese mes, asigna la criticidad P1–P4 de cada caso según su título y crea MMYYYY_RelacionFallosAtendidos.xlsx con el formato oficial. Usar cuando digan "/rfallos YYYYMM", "rfallos <mes>", "relación de fallos atendidos de <mes>" o "genera el indicador de fallos del mes".
 argument-hint: YYYYMM
 ---

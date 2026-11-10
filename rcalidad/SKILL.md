@@ -1,5 +1,6 @@
 ---
 name: rcalidad
+model: sonnet
 description: 'Genera los reportes mensuales de los indicadores 2 y 3 del Departamento de Mantenimiento — "Tasa de éxito de cambios liberados" y "Resolución definitiva de fallos" — a partir de los eventos LDP (antes LIBERADO) / REABIERTO / ORIGEN del canal de Slack #mtto y de la relación de fallos de /rfallos. Recibe el mes a reportar como YYYYMM (los casos de ese mes, con 30 días de seguimiento) y se ejecuta al mes siguiente. Crea MMYYYY_TasaExitoCambios.xlsx y MMYYYY_ResolucionDefinitivaFallos.xlsx. Usar cuando digan "/rcalidad YYYYMM", "indicadores 2 y 3", "tasa de éxito de cambios", "resolución definitiva de fallos" o "reaperturas del mes".'
 argument-hint: YYYYMM
 ---

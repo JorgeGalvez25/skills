@@ -1,5 +1,6 @@
 ---
 name: comisiones-final
+model: sonnet
 description: Genera el concentrado mensual de comisiones de Mantenimiento (Mantenimiento_Comisiones_<Mes>_<año>.xlsx). Se ejecuta desde la carpeta del mes (C:\Users\jorge\Dropbox\MTTO\Reportes Mensuales\Comisiones\<año>\YYYYMM-Mes), toma como base el concentrado del mes anterior, llena los cambios externos con el externos.PDF del mes y los internos con los HorasCambioTT#####.xlsx de CambiosInternos tal como estén guardados, y conserva igual la hoja Mejoras. Usar cuando digan "/comisiones-final", "genera el concentrado de comisiones", "archivo final de comisiones" o "Mantenimiento_Comisiones del mes".
 ---
 

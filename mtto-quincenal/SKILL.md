@@ -1,5 +1,6 @@
 ---
 name: mtto-quincenal
+model: sonnet
 description: 'Genera la hoja quincenal del reporte a dirección "Seguimiento de Casos por Desarrollador" (Casos_por_Desarrollador_mantenimiento.xlsx). Toma la última hoja del archivo, lee los standups de #mtto desde esa fecha y los títulos de CambiosProceso.xlsm, y agrega una hoja nueva (dd-mm) solo con el trabajo vigente de cada desarrollador. Usar cuando digan "/mtto-quincenal", "genera la hoja de la reunión", "reporte de casos por desarrollador" o "hoja para dirección".'
 argument-hint: "[dd/mm/aaaa (default: hoy)]"
 ---
