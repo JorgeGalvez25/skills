@@ -21,3 +21,6 @@ synced/
 ~$*
 .DS_Store
 Thumbs.db
+
+# Datos de ejecución de mtto-standup
+mtto-standup/aclaraciones.json
