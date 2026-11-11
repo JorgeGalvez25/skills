@@ -83,7 +83,7 @@ Crea `$R\YYYYMM\MMYYYY_RendimientoColaboradores.xlsx`:
 | Detalle | Cada caso atendido en el mes con sus fechas por etapa, fuente de la asignación y señales de calidad (auditable) |
 
 Definiciones (fijas en los scripts):
-- Días hábiles = NETWORKDAYS inclusivo, lunes a viernes sin feriados LFT. Se reporta la **mediana** (y el promedio en Equipo) porque un caso atorado distorsiona el promedio.
+- Días hábiles = NETWORKDAYS inclusivo, lunes a viernes sin feriados LFT ni los días no laborables de la empresa (`mtto-comun\feriados-extra.json`). Se reporta la **mediana** (y el promedio en Equipo) porque un caso atorado distorsiona el promedio.
 - **Atendido** en el mes: aparece en su standup del mes o tuvo entrega, LDP o cierre en el mes.
 - **Fortaleza / dificultad** por categoría (tipo, módulo, criticidad, complejidad): índice = su mediana de días de entrega ÷ mediana del resto del equipo. Fortaleza ≤ 0.8 sin fallos fuera de objetivo; dificultad ≥ 1.25, o alguna ORIGEN o reapertura, o 2 o más fallos fuera de objetivo. Requiere 3 casos suyos y 2 del resto.
 - **Carga activa**: casos propios por standup que no están en pausa, RSP ni cierre.

@@ -12,7 +12,7 @@ const COMUN = path.join(__dirname, '..', '..', 'mtto-comun');
 const { utc, dmy, leerFecha, fechaMensaje, esLaborable } = require(path.join(COMUN, 'fechas'));
 const { sinAcentos, limpiar, RX_EVENTO, CODIGOS_TESTER, parsear } = require(path.join(COMUN, 'standup'));
 const canal = require(path.join(COMUN, 'canal'));
-const ARCH_ACLARACIONES = path.join(__dirname, '..', 'aclaraciones.json');
+const ARCH_ACLARACIONES = process.env.MTTO_ACLARACIONES || path.join(__dirname, '..', 'aclaraciones.json');   // la variable es para las pruebas
 
 const VENTANA_DIAS = 10;       // días naturales de standups anteriores a la fecha revisada que se comparan
 const DIAS_ESTANCADO = 5;      // días hábiles con el mismo estatus

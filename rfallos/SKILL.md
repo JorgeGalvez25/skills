@@ -30,7 +30,7 @@ No hay Python en este equipo: todo se ejecuta con **Node** (`node`). Ejecuta los
 | Concepto | Valor |
 |---|---|
 | Objetivos por criticidad (días hábiles) | **P1 = 2 · P2 = 4 · P3 = 8 · P4 = 12** |
-| Conteo de tiempo | `NETWORKDAYS(Asignación de caso, Fecha real de respuesta, feriados)`, inclusivo en ambos extremos, lunes a viernes |
+| Conteo de tiempo | `NETWORKDAYS(Asignación de caso, Fecha real de respuesta, feriados)`, inclusivo en ambos extremos, lunes a viernes. Feriados = descanso obligatorio de la LFT más los días no laborables de la empresa capturados en `mtto-comun\feriados-extra.json` |
 | Feriados descontados | Días de descanso obligatorio de la LFT, art. 74 (1/01, primer lunes de febrero, tercer lunes de marzo, 1/05, 16/09, tercer lunes de noviembre, 25/12 y 1/10 cada seis años desde 2024), solo los que caen entre la asignación más antigua y la respuesta más reciente. El script los calcula. |
 | Cumple | Tiempo de atención ≤ objetivo de su criticidad |
 | Fórmula del indicador | Fallos dentro del objetivo ÷ fallos evaluables × 100 |

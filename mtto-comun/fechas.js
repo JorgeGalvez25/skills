@@ -27,13 +27,30 @@ const fechaMensaje = m => m.fecha && /^\d{4}-\d{2}-\d{2}/.test(m.fecha) ? leerFe
 // Medianoche MST de un día → timestamp Unix (para oldest/latest de Slack)
 const tsDeDia = d => d.getTime() / 1000 - DESFASE_SLACK_H * 3600;
 
-// Días de descanso obligatorio (LFT art. 74)
+// Días de descanso obligatorio (LFT art. 74) más los días no laborables propios de la empresa (feriados-extra.json)
 function nLunes(a, mes, n) { const d = new Date(Date.UTC(a, mes, 1)); return new Date(Date.UTC(a, mes, 1 + (8 - d.getUTCDay()) % 7 + 7 * (n - 1))); }
+const ARCH_EXTRA = process.env.MTTO_FERIADOS_EXTRA || require('path').join(__dirname, 'feriados-extra.json');
+let extra = null;
+// [{ dia (Date), motivo }] de feriados-extra.json; una fecha mal escrita detiene el script en lugar de ignorarse
+function feriadosExtra() {
+  if (!extra) {
+    const fs = require('fs');
+    const d = fs.existsSync(ARCH_EXTRA) ? JSON.parse(fs.readFileSync(ARCH_EXTRA, 'utf8').replace(/^\uFEFF/, '')) : { dias: [] };
+    extra = (d.dias || []).map(x => {
+      const m = String(x.fecha || '').match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+      const dia = m ? utc(+m[3], +m[2], +m[1]) : null;
+      if (!dia || dia.getUTCDate() !== +m[1] || dia.getUTCMonth() + 1 !== +m[2]) throw new Error(`feriados-extra.json: fecha no válida "${x.fecha}" (formato dd/mm/aaaa).`);
+      return { dia, motivo: x.motivo || null };
+    });
+  }
+  return extra;
+}
 const cacheFer = {};
 function feriados(a) {   // Set de getTime()
   if (!cacheFer[a]) {
     const l = [utc(a, 1, 1), nLunes(a, 1, 1), nLunes(a, 2, 3), utc(a, 5, 1), utc(a, 9, 16), nLunes(a, 10, 3), utc(a, 12, 25)];
     if ((a - 2024) % 6 === 0) l.push(utc(a, 10, 1));   // transmisión del Poder Ejecutivo
+    for (const x of feriadosExtra()) if (x.dia.getUTCFullYear() === a) l.push(x.dia);
     cacheFer[a] = new Set(l.map(d => d.getTime()));
   }
   return cacheFer[a];
@@ -56,4 +73,4 @@ function habiles(a, b) {
 }
 
 module.exports = { DESFASE_SLACK_H, utc, pad, iso, dmy, deIso, hoy, leerFecha, fechaTs, fechaMensaje, tsDeDia,
-  feriados, feriadosEntre, esLaborable, habiles };
+  feriados, feriadosExtra, feriadosEntre, esLaborable, habiles };
