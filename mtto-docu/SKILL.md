@@ -21,8 +21,9 @@ la ruta. Tu trabajo es entregar **dos documentos** a partir de lo que realmente 
 Todos los desarrolladores deben obtener documentos con la misma estructura, el mismo tono y el mismo nivel de detalle. Sigue los pasos **en orden** y no te saltes ninguno.
 
 **Carpeta del estándar** (en este documento, `$STD`): `$env:USERPROFILE\.claude\skills\mtto-docu`.
-Es un vínculo que crea `Instalar.ps1` hacia la carpeta versionada en SVN. Si no existe, usa la
-carpeta donde está este archivo. Contiene `scripts\`, `plantillas\` y `referencias\`.
+La fuente oficial es la carpeta `mtto-docu` del repositorio de Git de las skills de Mantenimiento (`JorgeGalvez25/skills`):
+el estándar se edita solo ahí y cada desarrollador actualiza su copia desde ese repositorio (ya no desde SVN ni con `Instalar.ps1`).
+Si la carpeta no existe en esa ruta, usa la carpeta donde está este archivo. Contiene `scripts\`, `plantillas\` y `referencias\`.
 
 ## Reglas que no se negocian
 
