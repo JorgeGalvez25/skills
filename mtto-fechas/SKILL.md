@@ -15,46 +15,23 @@ Extrae de la captura, por cada tarjeta: **columna** (PROCESO / ENTREGADO), **TT#
 **responsable** y **fecha** (formato dd/mm/aaaa). Ignora el número del círculo junto al reloj (no interpretarlo).
 Si no hay imagen adjunta, pídela y detente.
 
-## 2. Leer el canal #mtto (subagente)
+## 2. Estado de los casos en #mtto
 
-**No leas el canal tú.** Calcula el `oldest` con `node -e` y delega la lectura a un subagente (`Agent`, `subagent_type: "general-purpose"`,
-`model: "haiku"`); puedes lanzarlo **antes** de leer la imagen, para que trabaje mientras tanto. Pásale esta sección completa (incluida
-"Cómo son los mensajes") y pídele que entregue **solo** el estado por TT, una línea cada uno, sin transcribir los mensajes:
+**No leas el canal tú.** Los standups salen de la caché compartida de #mtto:
 
-`TT##### | responsable | último estatus tal cual | fecha de ese standup | ¿sigue en el último standup del responsable? (sí/no) | estatus previos con fecha, breves`
+1. Actualiza la caché siguiendo `C:\Users\jorge\.claude\skills\mtto-comun\canal.md` (léelo), con `canal.js oldest` de **hace 12 días**.
+   Puedes lanzar el subagente lector **antes** de leer la imagen, para que trabaje mientras tanto.
+2. Obtén el estado por colaborador y TT de esos 12 días:
+   ```bash
+   node "C:/Users/jorge/.claude/skills/mtto-comun/canal.js" estado <dd/mm/aaaa de hace 12 días>
+   ```
+   Por cada TT trae `estatus` (el último), `fecha` (de ese standup), `etapa`, `contador`, `historial` (cambios de estatus con su fecha) y
+   `enUltimo` (si sigue en el último standup de su responsable); además `ultimoStandup` por colaborador, `sinTT`, `eventos` y `rango`.
+   Cómo interpretarlo: `C:\Users\jorge\.claude\skills\mtto-comun\vocabulario.md`.
+3. Si necesitas el texto exacto de un caso dudoso: `canal.js mensajes <desde> [hasta]`. Las respuestas en hilo no están en la caché; léelas con `slack_read_thread`.
 
-más una línea con el rango leído y el último standup de cada responsable. El cruce con el tablero (paso 3) lo haces tú. Si necesitas el
-texto exacto de un caso dudoso, pídeselo al mismo subagente con `SendMessage` en lugar de releer el canal.
-
-Instrucciones para el subagente:
-- Canal: **#mtto**, privado, ID `C02CGD1D9NX` (el usuario a veces escribe "mmto"; es el mismo).
-- Herramienta: `slack_read_channel` con `channel_id=C02CGD1D9NX`, `limit=100` y `oldest` = timestamp Unix
-  de **hace ~12 días** (calcúlalo con cuidado a partir de la fecha de hoy; un error de año trae meses de
-  mensajes y la salida se desborda). Si aun así se desborda, acorta la ventana en lugar de procesar el archivo.
-- Si el conector de Slack no está autorizado, díselo al usuario (autorizar en conectores de claude.ai o `/mcp`) y detente.
-- Si algún mensaje relevante tiene hilo, léelo con `slack_read_thread`.
-
-### Cómo son los mensajes
-
-Cada desarrollador publica su standup diario (~17:00) mencionando a Jorge, sin títulos de día:
-directamente las secciones **standby** y **seguimiento**, con líneas `TT#####: estatus` (cómo queda cada caso al cierre del día).
-Los standups anteriores al 08/10/2026 traen bloques **Ayer** (o "Viernes") y **Hoy**; de esos usa solo el bloque "Hoy".
-Un caso que deja de aparecer en el standup sin estatus de cierre (RSP, LDP, CEC, cancelado) ni en `REVPR` se trata como "dejó de aparecer".
-Un caso sin ID aparece como `TTsinidN`; el día que recibe su TT, la línea nueva lleva `(antes sin ID)`.
-Equipo: Martín Reyes, Miguel Armenta, Susana Gámez, Saulo López.
-
-Vocabulario de estatus:
-- **RSP** (Revisión SCRUM Pendiente): el cliente dio por bueno el cambio o la corrección del fallo; falta integrarlo a MAIN y las pruebas previas a liberar la versión. Vuelve a seguimiento cuando entra a integración y pruebas con el tester.
-- **REVPR** (Revisión de PR): después de RSP, el desarrollador corrige el código por las observaciones al PR, con el mismo TT. No es cierre ni reapertura; al atender las observaciones sale del standup sin repetir RSP y vuelve en pruebas (ESPLDP).
-- **LDP**: el tester terminó sus pruebas y mandó el correo de liberación de pruebas (cambios, mejoras y fallos). "En espera de LDP" sigue abierto.
-- **CEC**: se manda a cerrar.
-- **Cancelado** (`TT#####: Cancelado` o la línea `CANCELADO TT##### | ...`): ya no se le da seguimiento. "Probablemente se cancele" no cuenta.
-- **Entregado / en espera de respuesta**: esperando retroalimentación de soporte/cliente.
-- **Pausa / pausado / standby / en espera de logs**: detenido.
-- "x2", "x3", "x4"… = veces que se ha repetido la misma acción (indica estancamiento).
-
-Usa el **último standup de cada responsable** como estatus vigente (los casos del más reciente),
-y los anteriores para ver la tendencia.
+Usa el **último standup de cada responsable** como estatus vigente y el `historial` para ver la tendencia.
+Un caso con `enUltimo: false` y sin etapa de cierre (`rsp`, `ldp`, `cierre`) ni `revpr` se trata como "dejó de aparecer".
 
 ## 3. Cruzar y clasificar
 

@@ -15,7 +15,7 @@ El Excel lo crea **siempre** `scripts/generar.js`. Tu trabajo: actualizar la cac
 
 - **Skill** (`$SK`): `C:\Users\jorge\.claude\skills\mtto-rendimiento`. Scripts Node en `$SK\scripts` (con `xlsx` y `exceljs`). No hay Python.
 - **Carpeta** (`$R`): `C:\Users\jorge\Dropbox\MTTO\Reportes Mensuales\Rendimiento`. `generar.js` crea `$R\YYYYMM`.
-  - `$R\datos\standups.json`: caché acumulada de todos los mensajes de #mtto desde el 01/09/2026 (la amplía `datos.js`; no la edites a mano).
+  - Los mensajes de #mtto salen de la caché compartida (`C:\Users\jorge\Dropbox\MTTO\ReportesMTTO\datos\canal_mtto.json`, desde el 01/09/2026), la misma de `/mtto-standup`, `/mtto-fechas` y `/mtto-quincenal`. La anterior `$R\datos\standups.json` se copió ahí la primera vez y ya no se usa.
   - `$R\datos\atribuciones.json`: decisiones de Jorge sobre quién atendió un caso (`{"TT106583": "Miguel Armenta"}`). Persistente.
 - JSON de trabajo en el scratchpad.
 
@@ -45,20 +45,16 @@ El colaborador que atendió un fallo **no** sale de VTiger (la relación va al c
 
 ## Paso 1 — Actualizar la caché de #mtto [subagente]
 
-Calcula el `oldest` con `node -e`: la fecha del último mensaje de `$R\datos\standups.json` menos 3 días, a las 00:00 MST (UTC−7). Si la caché no existe, `1788246000` (01/09/2026).
-Lanza un subagente (`Agent`, `general-purpose`, `model: "haiku"`) con estas instrucciones y pídele que responda solo con ruta, total de mensajes, rango y mensajes por autor:
-
-- Cargar `slack_read_channel` con ToolSearch. Canal **#mtto**, ID `C02CGD1D9NX`, `limit: 100`, `response_format: "detailed"` (el concise no trae `ts`), `oldest` = el calculado; paginar con `cursor` o por ventanas semanales con `oldest`/`latest` hasta hoy.
-- Leer completo cualquier mensaje truncado. Si el conector no está autorizado, detenerse y avisar.
-- Escribir **todos** los mensajes, en orden ascendente y sin resumir, en `<scratchpad>/nuevos.json`: `[{"ts":"…","fecha":"AAAA-MM-DD HH:MM","autor":"…","texto":"…"}]` y validar con `node -e` que el JSON se parsea.
+Sigue `C:\Users\jorge\.claude\skills\mtto-comun\canal.md` (léelo): `canal.js oldest 01/09/2026` (este reporte necesita la caché desde esa fecha),
+el subagente lector del canal y `canal.js unir`. Si la caché ya cubre desde el 01/09/2026 solo se leen los últimos días.
 
 ## Paso 2 — Consolidar
 
 ```bash
-node "C:/Users/jorge/.claude/skills/mtto-rendimiento/scripts/datos.js" YYYYMM "<scratchpad>/nuevos.json" > "<scratchpad>/datos.json"
+node "C:/Users/jorge/.claude/skills/mtto-rendimiento/scripts/datos.js" YYYYMM > "<scratchpad>/datos.json"
 ```
 
-Une `nuevos.json` a la caché (por `ts`) y arma un registro por caso. Para reconsolidar sin leer Slack, omite el segundo argumento.
+Lee la caché de #mtto y arma un registro por caso. Para reconsolidar no hace falta volver a leer Slack.
 Revisa `dudas` y `eventos.noLeidos` del JSON (con `node -e`, sin volcar todo el archivo).
 
 ## Paso 3 — Resolver dudas con Jorge (AskUserQuestion, varias por llamada)
@@ -67,7 +63,7 @@ Revisa `dudas` y `eventos.noLeidos` del JSON (con `node -e`, sin volcar todo el 
 - `dudas.variosDuenos`: TT en los standups de dos personas → ¿de quién es?
 - `dudas.reasignados`: el Desarrollador de CambiosProceso no coincide con el del standup → solo menciónalo si cambia el dueño que eligió el script.
 
-Escribe las respuestas en `$R\datos\atribuciones.json` (agrega, no borres las existentes) y vuelve a correr el paso 2 sin el segundo argumento.
+Escribe las respuestas en `$R\datos\atribuciones.json` (agrega, no borres las existentes) y vuelve a correr el paso 2.
 `dudas.entregaAntesDeDatos` (casos que ya venían entregados antes del 01/09/2026) no se pregunta: esos casos no cuentan en los tiempos de entrega.
 
 ## Paso 4 — Generar

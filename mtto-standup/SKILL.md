@@ -21,6 +21,7 @@ de mensaje directo por colaborador y **solo dejas en Slack, como borrador, los q
 - `/mtto-standup respuestas`: solo el Paso 0 y su parte de los Pasos 4 y 5 (útil por la mañana, cuando ya contestaron la retro de la tarde anterior).
 
 **Script:** `C:\Users\jorge\.claude\skills\mtto-standup\scripts\revisar.js` (Node, sin dependencias). JSON de trabajo en el scratchpad.
+**Comunes:** `C:\Users\jorge\.claude\skills\mtto-comun` — equipo y canal (`equipo.json`), caché compartida de #mtto (`canal.md`, `canal.js`) y el parser de standups (`standup.js`), que también usan `/mtto-rendimiento`, `/mtto-fechas` y `/mtto-quincenal`.
 **Aclaraciones:** `C:\Users\jorge\.claude\skills\mtto-standup\aclaraciones.json` (persistente; el script lo lee solo; ver "Aclaraciones" al final).
 
 ## Delegación (ahorro de tokens)
@@ -28,7 +29,7 @@ de mensaje directo por colaborador y **solo dejas en Slack, como borrador, los q
 Las lecturas de Slack son mecánicas y voluminosas: **no las hagas tú**. Al empezar, calcula los timestamps con `node -e` y lanza en **un solo mensaje**
 dos subagentes en paralelo (`Agent`, `subagent_type: "general-purpose"`, `model: "haiku"`), con las instrucciones exactas de los Pasos 0 y 1 marcadas como **[subagente]**:
 
-- **Lector del canal** (Paso 1) → escribe `<scratchpad>/standups.json`.
+- **Lector del canal** (Paso 1) → escribe `<scratchpad>/nuevos.json`, que tú unes a la caché compartida de #mtto.
 - **Lector de DMs** (Paso 0, puntos 1–3) → escribe `<scratchpad>/retros.json`.
 
 Pídeles que respondan solo con: archivo escrito, número de mensajes, rango de fechas y mensajes que no pudieron leer completos (nada del contenido).
@@ -50,14 +51,9 @@ la redacción ni los borradores de mensajes**. Si un subagente falla o el conect
 
 ## Equipo
 
-| Colaborador | Nombre en Slack | User ID |
-|---|---|---|
-| Saulo López | Saulo Lopez | `U058Z1DJ75G` |
-| Martín Reyes | Martin Reyes | `U05FCR2LSN7` |
-| Miguel Armenta | Miguel Armenta | `U07V14HD45S` |
-| Susana Gámez | susana | `U0959RX4B6W` |
+El equipo (nombre, nombre en Slack y User ID de cada colaborador) está en `C:\Users\jorge\.claude\skills\mtto-comun\equipo.json`: léelo al empezar y pásale esos datos al lector de DMs.
 
-Jorge Gálvez es `U02FVR9D2TS` (sus mensajes no se evalúan). Si aparece alguien nuevo publicando standups, pregúntale a Jorge si se incluye y búscale el ID con `slack_list_channel_members`.
+Los mensajes de Jorge Gálvez (`jefe` en `equipo.json`) no se evalúan. Si aparece alguien nuevo publicando standups, pregúntale a Jorge si se incluye; si es así, agrégalo a `equipo.json` (su ID se busca con `slack_list_channel_members`).
 
 ## Formato del standup (lo que se espera)
 
@@ -152,28 +148,21 @@ Puntos 1–3 **[subagente]**: por cada colaborador del equipo (pásale la tabla 
 
 Si no hay retros previas en el DM, sigue al Paso 1.
 
-## Paso 1 — Leer el canal [subagente]
+## Paso 1 — Actualizar la caché de #mtto [subagente]
 
-- Canal **#mtto**, ID `C02CGD1D9NX`. `slack_read_channel` con `limit: 100`, `response_format: "concise"` y `oldest` = timestamp Unix de
-  **10 días naturales antes** de la fecha revisada a las 00:00 (calcúlalo con `node -e` para no equivocarte de año). Si hay `cursor`, pagina.
-- Si el conector no está autorizado, avisa (conectores de claude.ai o `/mcp`) y detente.
-- Transcribe **todos** los mensajes, sin resumir ni corregir nada, a `<scratchpad>/standups.json`:
-
-```json
-[{"fecha":"2026-10-06 16:08","autor":"susana","texto":"<@U02FVR9D2TS|Jorge Gálvez>\n• standby\n    ◦ TT104547: En espera de logs\n..."}]
-```
-
-  `fecha` es la que muestra Slack (MST) en formato `AAAA-MM-DD HH:MM`; `autor` es el nombre tal cual aparece. Incluye también los mensajes de eventos y los de Jorge (el script los clasifica).
-  Si un mensaje viene truncado ("..."), léelo completo antes de transcribirlo.
+Sigue `C:\Users\jorge\.claude\skills\mtto-comun\canal.md` (léelo): `canal.js oldest` con **10 días naturales antes** de la fecha revisada,
+el subagente lector del canal y `canal.js unir`. Normalmente solo se leen los últimos días, porque lo anterior ya está en la caché.
+Si el conector no está autorizado o la unión marca la lectura como incompleta, avisa y detente.
 
 ## Paso 2 — Ejecutar la revisión
 
 ```bash
-node "C:/Users/jorge/.claude/skills/mtto-standup/scripts/revisar.js" "<scratchpad>/standups.json" [hoy | dd/mm/aaaa]
+node "C:/Users/jorge/.claude/skills/mtto-standup/scripts/revisar.js" [hoy | dd/mm/aaaa]
 ```
 
 Sin fecha, el script toma el último día con standups antes de hoy (igual que la skill). Pasa siempre la fecha revisada explícita para que coincida con la del Paso 1.
 
+Lee la caché de #mtto (los 10 días naturales anteriores a la fecha revisada), así que el Paso 1 debe haber terminado.
 Devuelve por colaborador `standupDeHoy`, `hora`, `hallazgos[]` (`regla`, `tt`, `detalle`), `estancados[]`, `faltantes[]` (días hábiles sin standup: `dia`, `ultimoStandup`; solo informativo), `aclarados[]`
 (hallazgos que cubre una aclaración vigente, con su `nota` y `fuente`; no se le vuelven a señalar al colaborador) y `cambiosId[]` (`antes`, `nuevo`, `fuente`: IDs unidos por la marca
 `(antes TT#####)` o por una aclaración), además de `diasSinRegistro` (días entre semana sin standup de nadie; no cuentan como hábiles) y `ttCompartidos` (con `tester` cuando alguien lo trae como `PRU`, `ESPBUG` o `FINPRU`).
