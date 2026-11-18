@@ -45,7 +45,13 @@ Solo quedan visibles las filas con datos; las demás de cada tabla se ocultan.
 
 ## Paso 1 — Leer los cambios externos
 
-Lee `$MES\externos.PDF` con la herramienta Read. De cada factura toma: factura (`FI-######`), fecha, recibo (`RI-######`), cliente, importe pagado y porcentaje de comisión.
+Extrae el texto de `$MES\externos.PDF` con pdfplumber, que da los importes exactos y gasta menos que leer las páginas como imagen:
+
+```bash
+python -c "import pdfplumber,sys; [print(p.extract_text()) for p in pdfplumber.open(sys.argv[1]).pages]" "<$MES>/externos.PDF"
+```
+
+Si el texto sale vacío o desordenado (PDF escaneado), léelo con la herramienta Read. De cada factura toma: factura (`FI-######`), fecha, recibo (`RI-######`), cliente, importe pagado y porcentaje de comisión.
 
 - Si un cliente no es JAG, pregunta al usuario a quién le corresponde (Jorge, Susana, Martin, Saulo o Miguel). No lo supongas.
 - Si no hay PDF, pregunta al usuario si el mes no tuvo cambios externos.

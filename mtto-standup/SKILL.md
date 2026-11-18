@@ -15,8 +15,8 @@ de mensaje directo por colaborador y **solo dejas en Slack, como borrador, los q
 - `/mtto-standup dd/mm/aaaa`: flujo completo sobre esa fecha.
 - La **fecha revisada** es la que resulta de lo anterior; en el resto de la skill, "hoy" / "standup de hoy" se refiere a ella. Dila en la primera línea del Paso 4.
 - **Los borradores nunca dicen "hoy"**: el equipo registra por la tarde y Jorge envía la retro a la mañana siguiente (o el lunes, si registraron el viernes).
-  Si la fecha revisada es ayer, dilo así ("tu standup de ayer", "ayer TT##### decía…"); si no, nómbrala con día y fecha ("tu standup del viernes 30/10").
-  Los standups anteriores van siempre con día y fecha ("el miércoles 28/10 TT##### decía…").
+  Toda fecha del borrador (standups, retros anteriores) que sea ayer o antier respecto al día en que se redacta se dice así ("tu standup de ayer",
+  "te lo comenté antier", "antier TT##### decía…"); las demás, con día y fecha ("tu standup del viernes 30/10", "el miércoles 28/10 TT##### decía…").
 - **Día sin registros de nadie** (entre semana): probablemente fue festivo. El script no lo cuenta como hábil (huecos, contadores, estancados) y lo lista en `diasSinRegistro`.
 - `/mtto-standup respuestas`: solo el Paso 0 y su parte de los Pasos 4 y 5 (útil por la mañana, cuando ya contestaron la retro de la tarde anterior).
 
@@ -220,7 +220,7 @@ Hola <nombre>, revisé tu standup del dd/mm contra los de días anteriores y enc
 ¿Me ayudas a corregirlo editando el mensaje del standup? Gracias.
 ```
 
-   Tono cordial y directo, tuteo, sin "hoy" para referirse al standup revisado ("ayer", o su día y fecha), sin regaños ni adjetivos. Máximo 5 viñetas por persona (prioriza: IDs, desaparece/cambio-id, retrocesos/sin-rsp/eventos, copiado/estructura/formato, ortografía).
+   Tono cordial y directo, tuteo, sin "hoy" para referirse al standup revisado ("ayer"/"antier" si aplica, o su día y fecha), sin regaños ni adjetivos. Máximo 5 viñetas por persona (prioriza: IDs, desaparece/cambio-id, retrocesos/sin-rsp/eventos, copiado/estructura/formato, ortografía).
    El mensaje sale de la cuenta de Jorge, así que no se firma. Un standup faltante no lleva borrador (regla 6); solo si Jorge lo pide:
    "Hola <nombre>, no encontré tu standup del dd/mm en #mtto. ¿Me ayudas a publicarlo?".
 5. Termina preguntando a quién se le deja el borrador, qué correcciones se dejan y qué aclaraciones se guardan.

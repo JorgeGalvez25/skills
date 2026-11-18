@@ -15,11 +15,11 @@ argument-hint: "[versión, p. ej. 4.3.13.0 (default: carpeta actual) | TT##### p
 - **Salida:** `<carpeta>\Revision_PR\` con un `TT#####.md` por caso y `00_Resumen_Revision_PR_<versión>.md`.
 - **Solo lectura en Azure DevOps.** Nunca se aprueba ni se vota. Solo se comenta en los PR cuando Jorge lo pide y después de que aprueba los textos en el chat (ver "Comentarios en los PR").
 - **Seguimiento:** si el argumento es un TT, o Jorge pide revisar si un desarrollador ya corrigió un caso que ya tiene `Revision_PR\TT#####.md`, no se corren los pasos de abajo: seguir `references\seguimiento.md`.
-- No hay Python en el equipo: todo corre con PowerShell y los scripts de `scripts\`, que comparten `comun.ps1`. Los `.ps1` se guardan en UTF-8 con BOM.
+- Los scripts de `scripts\` corren en PowerShell y comparten `comun.ps1`. Los `.ps1` se guardan en UTF-8 con BOM. Para consultas sueltas fuera de los scripts usar `az repos pr show --id <PR> --detect false` o `az repos pr list --project <proyecto> --detect false` (organización predeterminada: igasmxproyectos) y Python (`openpyxl`, `pandas`) para leer Excel.
 
 ## Token
 
-Los scripts leen `AZURE_DEVOPS_EXT_PAT`, primero de la sesión y luego de la variable de usuario de Windows. Si `preparar.ps1` termina con `SIN_TOKEN` o `TOKEN_INVALIDO`, explicarle a Jorge cómo resolverlo:
+Los scripts leen `AZURE_DEVOPS_EXT_PAT`, primero de la sesión y luego de la variable de usuario de Windows (`az devops` usa la misma variable; la organización no acepta tokens de `az login`). Si `preparar.ps1` termina con `SIN_TOKEN` o `TOKEN_INVALIDO`, explicarle a Jorge cómo resolverlo:
 
 1. En Azure DevOps, ir al engrane con persona (arriba a la derecha) → **Personal access tokens** → **+ New Token**.
    - Organización: `igasmxproyectos`.
