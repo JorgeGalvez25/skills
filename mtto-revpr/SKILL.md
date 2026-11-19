@@ -95,19 +95,16 @@ Solo cuando Jorge lo pide, en una revisión completa o en un seguimiento.
    # Comentarios PR#### — TT#####
 
    ## /Master/Master_Cup.pas 512
-   **[Obligatorio] <título>**
-
-   <mensaje para el desarrollador>
+   <Nombre>, <mensaje en prosa casual: qué pasa, en qué caso falla y cómo arreglarlo>
 
    ## /Master/Master_Cup.pas 584-587
-   **[Condicionado] <título>**
-   …
+   <Nombre>, …
 
    ## General
-   **Revisión del dd/mm/aaaa, iteración n (`xxxxxxx`)**
-   <lo que ya quedó bien, la lista numerada de lo que falta para aprobar y lo no bloqueante>
+   <prosa breve: qué ya quedó bien, qué falta para aprobar y lo no bloqueante>
    ```
-   - Un comentario por cada hallazgo obligatorio o condicionado, anclado en la línea de `head\` (última iteración) donde va el cambio, con la ruta del repo tal como aparece en el PR (empieza con `/`). El texto sale del "Mensaje para…" del informe.
+   - Un comentario por cada hallazgo obligatorio o condicionado, anclado en la línea de `head\` (última iteración) donde va el cambio, con la ruta del repo tal como aparece en el PR (empieza con `/`). El texto se toma del "Mensaje para…" del informe, reescrito en el tono de abajo.
+   - Tono casual y directo, de compañero a compañero: párrafos cortos en prosa, sin encabezados ni etiquetas ("Escenario:", "Cambio requerido:") y sin marcar [Obligatorio]/[Condicionado] en el texto. Decir qué pasa, en qué caso falla y cómo arreglarlo; el fragmento de código solo si ayuda.
    - Los no bloqueantes solo se mencionan en el comentario general.
    - No repetir hallazgos que ya tienen un hilo activo en el PR (salen en `pr.md` o `seguimiento.md`).
 2. **Validar las anclas** sin publicar:
