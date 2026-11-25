@@ -24,6 +24,7 @@ de mensaje directo por colaborador y **solo dejas en Slack, como borrador, los q
 **Comunes:** `C:\Users\jorge\.claude\skills\mtto-comun` — equipo y canal (`equipo.json`), caché compartida de #mtto (`canal.md`, `canal.js`) y el parser de standups (`standup.js`), que también usan `/mtto-rendimiento`, `/mtto-fechas` y `/mtto-quincenal`.
 **Aclaraciones:** `C:\Users\jorge\.claude\skills\mtto-standup\aclaraciones.json` (persistente; el script lo lee solo; ver "Aclaraciones" al final).
 **Correos:** caché `C:/Users/jorge/Dropbox/MTTO/ReportesMTTO/datos/correos_mtto.json` (la arma `mtto-comun/correos.ps1`; `revisar.js` la lee solo y, sin ella, la revisión funciona sin correos).
+**VTiger:** estado actual de los casos con `C:\Users\jorge\.claude\skills\mtto-comun\vtiger.js` (Paso 2b). Es evidencia adicional; no reemplaza a los correos. Credenciales en `C:\Users\jorge\.mtto\vtiger.json`; nunca las muestres.
 **Pruebas:** después de cambiar una regla en `revisar.js` o en `mtto-comun\standup.js`, corre `node "C:/Users/jorge/.claude/skills/mtto-standup/pruebas/probar.js"` (ver "Pruebas" al final).
 
 ## Delegación (ahorro de tokens)
@@ -183,6 +184,22 @@ Devuelve por colaborador `standupDeHoy`, `hora`, `hallazgos[]` (`regla`, `tt`, `
 (p. ej. "Apoyo servidores JAG") pueden ir sin TT; solo llevan número de caso cuando él lo reporta. El script no marca `id` ni `sin-caso`
 en esas líneas, y tú tampoco le pidas TT por ellas. Las demás reglas sí aplican (si trae TT, se sigue como cualquier caso). La excepción es solo de Martín y del cliente JAG.
 
+## Paso 2b — Contrastar con VTiger
+
+Guarda la salida de `revisar.js` en el scratchpad y consulta en VTiger todos los TT que menciona:
+
+```bash
+grep -oE 'TT[0-9]{5,}' "<scratchpad>/revision.json" | sort -u | xargs node "C:/Users/jorge/.claude/skills/mtto-comun/vtiger.js" casos > "<scratchpad>/vtiger.json"
+```
+
+Por TT trae `tipo`, `estatus` (del flujo), `ticketstatus`, `asignado`, `soporte` (ID de soporte, `cf_1275`), `definitivos` (casos que lo tienen como soporte) y `fechas` con valor; `faltan` son los TT que no existen en VTiger.
+Si VTiger falla, avisa y sigue sin él. Úsalo en el Paso 3:
+
+- **`cambio-id`:** si el TT nuevo tiene como `soporte` al anterior (o el anterior lo trae en `definitivos`), el cambio de ID es un hecho: redáctalo afirmativo, citando VTiger, igual que el de correo con relación `soporte`.
+- **`desaparece`:** si VTiger tiene el caso cerrado (`ticketstatus` Closed, estatus Terminado, Cerrado, Liberado o Cancelado), pregunta por el cierre que falta en el standup (CEC, RSP o LDP) en lugar de "¿se cerró?".
+- **`faltan`:** un TT del standup que no existe en VTiger es un ID mal escrito; súmalo a la regla `id`.
+- **Discrepancias para Jorge** (no se le señalan al colaborador): el standup dice entregado, RSP o LDP y VTiger sigue en un estatus previo; VTiger lo tiene cerrado y el standup lo sigue trabajando; el `asignado` de VTiger no es quien lo trae en su standup (salvo como tester).
+
 ## Paso 3 — Depurar (tu criterio)
 
 El script es estricto a propósito. Antes de redactar, descarta o matiza:
@@ -214,7 +231,7 @@ El script es estricto a propósito. Antes de redactar, descarta o matiza:
    - Para cada `aclarado`: la entrada propuesta para `aclaraciones.json` (en bloque de código) y, si la retro original estaba mal, el borrador de
      **corrección**, que se envía como respuesta en el hilo de esa retro: "Tienes razón, <qué estaba mal>. Lo quito de la revisión. Gracias por aclararlo."
    - Para cada `desacuerdo`: las opciones para que Jorge decida (mantener la regla, excepción con `hasta`, cambiar la regla de la skill).
-3. **Para ti (no se envía):** estancados (TT, estatus, desde, días hábiles), `cambiosId` aplicados (los de fuente correo, con fecha y asunto), `anomaliasCorreo` (entrega con la ruta de otro TT: posible ID equivocado), TT compartidos, `faltantes` (quién no publicó y qué días), `diasSinRegistro` (probables días festivos), `aclarados` que aplicó el script, hallazgos descartados y por qué.
+3. **Para ti (no se envía):** estancados (TT, estatus, desde, días hábiles), `cambiosId` aplicados (los de fuente correo, con fecha y asunto), `anomaliasCorreo` (entrega con la ruta de otro TT: posible ID equivocado), TT compartidos, `faltantes` (quién no publicó y qué días), `diasSinRegistro` (probables días festivos), `aclarados` que aplicó el script, hallazgos descartados y por qué, y las discrepancias con VTiger del Paso 2b (si Jorge quiere corregir VTiger, usa `/vtiger`).
 4. **Borradores**, uno por colaborador con hallazgos, cada uno en un bloque de código para que se lea exacto:
 
 ```

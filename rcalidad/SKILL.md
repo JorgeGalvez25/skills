@@ -53,7 +53,7 @@ Devuelve `mes`, `periodo`, `finSeguimiento`, `corte`, `seguimientoCompleto`, `sl
 
 - `ERROR:` → muéstralo y detente.
 - `seguimientoCompleto: false` es lo normal (se ejecuta a inicios del mes siguiente): menciónalo en la entrega con la fecha de corte; no hace falta preguntar.
-- Sin relación de `/rfallos` del mes → propón correr primero `/rfallos YYYYMM`. Si eso no es posible (meses anteriores a 202609), ve a **Transición**.
+- Sin relación de `/rfallos` del mes → propón correr primero `/rfallos YYYYMM` (ya no necesita la exportación manual: la arma desde VTiger). Si eso no es posible (meses anteriores a 202609), ve a **Transición**.
 
 ## Delegación (ahorro de tokens)
 
