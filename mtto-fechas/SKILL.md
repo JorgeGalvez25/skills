@@ -81,14 +81,21 @@ El canal sigue siendo la fuente del estatus; el correo lo confirma o lo contradi
 - **Nada en el canal pero con correos**: ya no es "Sin información"; usa el último correo como evidencia.
 - **`anomalias`** de TT del tablero: menciónalas aparte.
 
-Nunca supongas lo que el canal o el correo no digan; cita brevemente lo que dice el standup y de qué día, y del correo tipo, fecha y asunto.
+VTiger también es evidencia:
+
+- **Tarjeta de PROCESO con `entrega`** (`cf_1076`): la corrección ya se entregó; va en "Revisar estatus" (pasar a Entregado con la fecha de `entrega`).
+- **Tarjeta sin `fecha`**: va en "Mover fecha" con la fecha propuesta, aunque el canal diga que va bien.
+- **Comentarios del caso:** para las tarjetas de "Mover fecha", "Revisar estatus" y "Sin información", lee los comentarios con `vtiger.js caso TT#####`. Un comentario posterior al último standup o correo (el cliente respondió, soporte pidió cerrar, se espera información) es evidencia: cítalo con fecha y autor. Con un comentario, el caso ya no es "Sin información".
+- **`responsable` distinto** de quien lo trae en su standup (salvo como tester): menciónalo en "Revisar estatus" para reasignar.
+
+Nunca supongas lo que el canal, el correo o VTiger no digan; cita brevemente lo que dice el standup y de qué día, del correo tipo, fecha y asunto, y del comentario fecha y autor.
 
 ## 4. Respuesta
 
 En español, breve, con este formato:
 
 - Una línea con el origen del tablero y el rango leído (ej. "Tablero de VTiger: 9 tarjetas. Leí #mtto del 21/09 al 01/10 y correos del 21/09 al 01/10").
-- **Mover fecha**: tabla `Ticket (responsable) | Fecha actual | Fecha propuesta | Qué dicen en el canal | Correo`, del más atrasado al menos.
+- **Mover fecha**: tabla `Ticket (responsable) | Fecha actual | Fecha propuesta | Qué dicen en el canal | Correo o comentario`, del más atrasado al menos.
 - **Revisar estatus**: viñetas con la acción sugerida (pasar a Entregado, confirmar RSP o LDP, cerrar).
 - **Correos que contradicen el standup** (si aplica): viñetas cortas, también las `anomalias`.
 - **Sin cambio**: viñetas cortas.
