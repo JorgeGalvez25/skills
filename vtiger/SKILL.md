@@ -58,14 +58,14 @@ El controlador se elige solo: `Cambio` para cambios; `FalloTesting` si el fallo 
 3. Con su "sí", repite el comando con `--confirmar`. El resultado trae `http`, `respuesta` y `despues` (el caso vuelto a leer). Si `despues.estatus` no es el esperado, dilo.
 4. Cada escritura queda en `C:\Users\jorge\Dropbox\MTTO\ReportesMTTO\datos\vtiger_escrituras.log` (una línea JSON). Da esa ruta al terminar.
 
-Errores comunes: `Estado actual "X" no permite el cambio` (el caso no está en un estatus de origen válido, revisa con `caso`); `Fecha ... inválida`; `401/403` (el rol de la cuenta no tiene permiso para esa acción).
+Errores comunes: `Estado actual "X" no permite el cambio` (el caso no está en un estatus de origen válido, revisa con `caso`); `Fecha ... inválida`; `401/403` (el rol de la cuenta no tiene permiso para esa acción); `Permission to read given object is denied` (la API escribe con la sesión VTiger de cada usuario: su rol no puede editar Casos o esos campos; los desarrolladores de Mantenimiento van en el rol H38 "ANALISTA - DESARROLLADOR MTTO", perfil 29).
 
 ## La API
 
-`api` de `vtiger.json` apunta a `http://localhost:5240/api`. Si `mover --confirmar` dice que la API no responde, levántala en segundo plano desde `C:\Users\jorge\Dropbox\Proyectos\MelissaVirtual\MelissaVirtualAPI`:
+`api` de `vtiger.json` apunta a producción, `https://melissavirtualapi.azurewebsites.net/api`. `CambioController` solo tiene rutas `PUT`: un `GET` a `/api/Cambio` da 404 aunque esté publicado.
+
+Para probar cambios de la API antes de publicarlos, levántala local y apunta `api` a `http://localhost:5240/api` mientras tanto:
 
 ```bash
 cd "C:/Users/jorge/Dropbox/Proyectos/MelissaVirtual/MelissaVirtualAPI" && dotnet build -v q && ASPNETCORE_ENVIRONMENT=Development dotnet run --no-build --no-launch-profile --urls http://localhost:5240
 ```
-
-Espera a que `GET http://localhost:5240/api/Autenticacion` responda, haz las escrituras y detén el proceso al terminar. Cuando la API esté publicada con `CambioController`, basta con cambiar `api` en `vtiger.json`.
